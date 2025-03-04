@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sơ Đồ Nhà Hàng</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .restaurant {
+            width: 800px;
+            height: 500px;
+            background: white;
+            border: 2px solid black;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .section {
+            border: 1px solid gray;
+            padding: 10px;
+        }
+
+        .office,
+        .sushi-bar {
+            background: #ccc;
+            text-align: center;
+        }
+
+        .tables {
+    display: flex;
+    flex-direction: column;  /* Đảm bảo các hàng xếp đúng */
+    gap: 45px;  /* Khoảng cách giữa các hàng */
+}
+
+.table {
+    width: 60px;
+    height: 60px;
+    background: #e6d5b8;
+    border: 2px solid black;
+    text-align: center;
+    line-height: 60px;
+    font-weight: bold;
+}
+
+
+
+        .round {
+            border-radius: 50%;
+        }
+
+        .long-table {
+    width: 140px;  /* Bàn dài */
+    height: 60px;
+    grid-column: span 2;  /* Đảm bảo bàn dài chiếm 2 cột */
+    background: #e6d5b8;
+    border: 2px solid black;
+    text-align: center;
+    font-weight: bold;
+}
+        .row {
+            display: flex;
+            justify-content: space-around;
+            /* Căn giữa các bàn theo hàng */
+            gap: 10px;
+            /* Khoảng cách giữa các bàn */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="restaurant">
+        <div class="section warehouse">
+            <h3>warehouse</h3>
+        </div>
+
+        <div class="section tables">
+            <div class="row">
+                <div class="table">B1</div>
+                <div class="table round">B2</div>
+                <div class="table round">B3</div>
+                <div class="table">B4</div>
+            </div>
+
+            <div class="row">
+                <div class="table long-table">B5</div>
+                <div class="table long-table">B6</div>
+                <div class="table long-table">B7</div>
+            </div>
+
+            <div class="row">
+                <div class="table">B9</div>
+                <div class="table round">B10</div>
+                <div class="table round">B11</div>
+                <div class="table">B12</div>
+            </div>
+        </div>
+
+        <div class="section sushi-bar">
+            <h3>Sushi Bar</h3>
+        </div>
+    </div>
+
+
+
+</body>
+
+</html>
