@@ -118,7 +118,7 @@ export const verifyAccount = async (req, res) => {
     await account.update({ is_verified: true });
 
     // Sau khi xác minh thành công, chuyển hướng người dùng tới trang chủ của client
-    return res.redirect(`${process.env.CLIENT_URL}/home`);
+    return res.redirect(`${process.env.CLIENT_URL}/account/login`);
   } catch (error) {
     console.error("❌ Lỗi xác minh tài khoản:", error);
     return res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });

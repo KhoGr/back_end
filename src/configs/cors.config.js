@@ -13,7 +13,7 @@ try {
   const corsConfig = {
     origin:
       process.env.NODE_ENV !== 'production'
-        ? 'http://localhost:8888'
+        ? 'http://localhost:5173'
         : process.env.CORS_ORIGIN,
     methods: 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
     allowedHeaders:

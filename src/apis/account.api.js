@@ -31,9 +31,9 @@ accountApi.post("/reset-password-request", requestPasswordReset);
 accountApi.post("/reset-password", resetPassword);
 
 accountApi.put('/update-password', jwtAuthentication, updatePassword);
-accountApi.put("/update-avt", jwtAuthentication, ChangeAvt);// chưea test
+accountApi.put("/update-avt", jwtAuthentication, ChangeAvt);// chưa test
 accountApi.get("/profile", jwtAuthentication, getUserProfile);
-accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);
+accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);// chưa test
 
 
 // Route bắt đầu đăng nhập Google
