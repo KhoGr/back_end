@@ -7,14 +7,16 @@ import {
   requestPasswordReset,
   resetPassword,
   updatePassword,  
-  ChangeAvt,
+  changeAvatar,
   getUserProfile,
   updateUserProfile,
-  googleLoginCallback
+  googleLoginCallback,
+  getMe
 } from "../controllers/account.controller.js";
 import  passport  from "../middlewares/passport.js";
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
-
+import { checkLogin } from "../middlewares/auth.middleware.js";
+import {upload} from "../middlewares/upload.middleware.js"
 const accountApi = Router();
 //đăng ký
 
@@ -22,7 +24,7 @@ accountApi.post("/register", registerLocal);
 
 accountApi.get("/verify-account", verifyAccount);
 // Đăng nhập
-accountApi.post("/login", postLogin);
+accountApi.post("/login", checkLogin,postLogin);
 accountApi.post("/logout", postLogout);
 
 //quên mật khẩu
@@ -31,9 +33,9 @@ accountApi.post("/reset-password-request", requestPasswordReset);
 accountApi.post("/reset-password", resetPassword);
 
 accountApi.put('/update-password', jwtAuthentication, updatePassword);
-accountApi.put("/update-avt", jwtAuthentication, ChangeAvt);// chưa test
+accountApi.put("/update-avt",upload.single("avatar"), jwtAuthentication, changeAvatar);// bug
 accountApi.get("/profile", jwtAuthentication, getUserProfile);
-accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);// chưa test
+accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);// thành công nhưng cần bổ sung bảo mật
 
 
 // Route bắt đầu đăng nhập Google
@@ -46,6 +48,8 @@ accountApi.get(
 );
 
 //xong đến đây
+accountApi.get("/me",jwtAuthentication,getMe);
+
 
 //đóng hòm
 export default accountApi;

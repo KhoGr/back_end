@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 // Lấy secret và thời gian hết hạn từ biến môi trường (hoặc dùng giá trị mặc định)
 const JWT_SECRET = process.env.JWT_SECRET_KEY || '86f0f8b0e4124392102531eb911e1aa546f6e6b87ca7e18cd457097463830f4e2bacba13ac3cbdbb949c54f106159ba294037c8a6b6b97275ae4c505b7b82578';
-const JWT_EXPIRES_TIME = '3m';
+const JWT_EXPIRES_TIME = '1440m';
 console.log(JWT_EXPIRES_TIME);
 console.log(JWT_SECRET);
 

@@ -3,8 +3,8 @@ import User from "../models/user.js";
 import Account from "../models/account.js";
 import { uploadImage } from "./common.service.js";
 import bcrypt from "bcryptjs";
-import { createUsername } from "../helper/index.js";
-import { hashPassword } from "../helper/index.js";
+// import { createUsername } from "../helper/index.js";
+// import { hashPassword } from "../helper/index.js";
 
 export const isExistAccount = async (email) => {
   try {
@@ -118,26 +118,7 @@ export const changeUserPassword = async (email, currentPassword, newPassword) =>
 };
 
 
-export const updateAvt= async(username,avtSrc)=>{
-try{
-  const user=await User.findOne({where:{username}});
-  if(!user){
-    throw new Error("User does not exist");
-  }
-  const picture= await uploadImage(avtSrc,"user/avatar")
-  if(!picture){
-    throw new Error("Cannot upload avatar");
-  }
-  user.avatar=picture;
-  await user.save();
-  return picture;
 
-
-}catch(error){
-  console.error("Lỗi khi cập nhật avatar:", error);
-  throw error;
-}
-}
 export const getUserInfo = async (userId) => {
   try {
     const user = await User.findOne({
@@ -191,7 +172,6 @@ export const updateProfile = async (userId, updateData) => {
     throw error;
   }
 };
-////////////////////////////////////////////////////////////
 export const getUserProfile = (user) => {
   if (!user) return null;
   return {
@@ -209,4 +189,45 @@ export const logoutUser = (req) => {
       resolve();
     });
   });
+};
+// hoàn thành
+////////////////////////////////////////////////////////////
+
+export const uploadAvatar = async (filePath, username) => {
+  try {
+    // Upload ảnh lên Cloudinary
+    const avatarUrl = await uploadImage(filePath, "avatars"); // Lưu vào thư mục avatars
+
+    // Cập nhật avatar trong DB
+    const updatedUser = await User.findOneAndUpdate(
+      { username },
+      { avatar: avatarUrl },
+      { new: true }
+    );
+
+    if (!updatedUser) throw new Error("Không tìm thấy user!");
+
+    return updatedUser.avatar;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+export const updateUserAvatar = async (username, avatarUrl) => {
+  try {
+    // Tìm user trước
+    const user = await User.findOne({ username });
+    if (!user) {
+      throw new Error("Người dùng không tồn tại.");
+    }
+
+    // Cập nhật avatar
+    user.avatar = avatarUrl;
+    await user.save();
+
+    return user;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật avatar:", error);
+    throw new Error("Không thể cập nhật avatar.");
+  }
 };

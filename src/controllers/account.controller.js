@@ -20,10 +20,14 @@ import {
   createAccount,
   createUser,
   changeUserPassword,
-  updateAvt,
+  uploadAvatar,
   getUserInfo,
-  updateProfile} from "../service/account.service.js";
+  updateProfile,
+  updateUserAvatar
+
+} from "../service/account.service.js";
 import Account from "../models/account.js";
+import { uploadImage } from "../service/common.service.js";
 
 export const registerLocal = async (req, res) => {
   try {
@@ -154,13 +158,13 @@ export const postLogin = async (req, res) => {
 
     res.cookie("jwt_token", token, {
       httpOnly: true,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Cookie hết hạn sau 1 ngày
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000), // Cookie hết hạn sau 1 ngày
     });
 
     return res.status(200).json({
       message: "Đăng nhập thành công",
       token,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
     });
   } catch (error) {
     console.error("POST LOGIN ERROR: ", error);
@@ -328,26 +332,6 @@ export const updatePassword = async (req, res) => {
   }
 };
 
-export const ChangeAvt = async (req, res) => {
-  try {
-    const { username, avtSrc } = req.body;
-    console.log("username khi up avatar:", username);
-    if (!username || !avtSrc) {
-      return res.status(400).json({ error: "Thiếu username hoặc avtSrc" });
-    }
-    const updateAvatar = await updateAvt(username, avtSrc);
-
-    if (!updateAvatar) {
-      return res.status(401).json({ error: "cập nhật avatar thấtvại " });
-    }
-    return res.json({
-      message: "Cập nhật avatar thành công",
-      avatar: updatedAvt,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
 
 
 export const getUserProfile = async (req, res) => {
@@ -416,4 +400,65 @@ export const googleLoginCallback = (req, res) => {
       is_verified: req.user.is_verified,
     },
   });
+};
+
+export const getMe = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    console.log("Get /me chạy thành công");
+    return res.status(200).json({
+      success: true,
+      message:"Get Me chạy thành công",
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        name: req.user.name,
+        username: req.user.username,
+        phone: req.user.phone,
+        address: req.user.address,
+        is_verified: req.user.is_verified,
+        avatar: req.user.avatar,
+        provider: req.user.provider, 
+        role:req.user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi GET ME: ", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+
+///////////////////////////////////
+
+
+
+export const changeAvatar = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "Vui lòng chọn ảnh" });
+    }
+
+    // Upload ảnh lên Cloudinary
+    const avatarUrl = await uploadImage(file.path, "avatars");
+
+    // Cập nhật avatar trong DB bằng service
+    const updatedUser = await updateUserAvatar(username, avatarUrl);
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "Không tìm thấy user!" });
+    }
+
+    return res.json({
+      message: "Cập nhật avatar thành công!",
+      avatar: updatedUser.avatar,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 };
