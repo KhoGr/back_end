@@ -47,8 +47,8 @@ accountApi.get(
   googleLoginCallback
 );
 
-//xong đến đây
 accountApi.get("/me",jwtAuthentication,getMe);
+//xong đến đây
 
 
 //đóng hòm
