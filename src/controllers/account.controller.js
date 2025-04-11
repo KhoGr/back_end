@@ -23,11 +23,12 @@ import {
   uploadAvatar,
   getUserInfo,
   updateProfile,
-  updateUserAvatar
-
+  updateUserAvatar,
 } from "../service/account.service.js";
 import Account from "../models/account.js";
 import { uploadImage } from "../service/common.service.js";
+import jwt from "jsonwebtoken";
+
 
 export const registerLocal = async (req, res) => {
   try {
@@ -141,11 +142,9 @@ export const postLogin = async (req, res) => {
     }
 
     if (!account.is_verified) {
-      return res
-        .status(403)
-        .json({
-          message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
-        });
+      return res.status(403).json({
+        message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, account.password);
@@ -197,10 +196,10 @@ export const postLogout = async (req, res) => {
         }
       });
     }
-    
+
     // Xóa cookie chứa JWT (dù bạn dùng session hay JWT lưu cookie, xóa cookie vẫn an toàn)
     res.clearCookie("jwt_token", { httpOnly: true });
-    
+
     return res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (error) {
     console.error("POST LOGOUT ERROR:", error);
@@ -332,8 +331,6 @@ export const updatePassword = async (req, res) => {
   }
 };
 
-
-
 export const getUserProfile = async (req, res) => {
   try {
     if (!req.user) {
@@ -342,7 +339,9 @@ export const getUserProfile = async (req, res) => {
 
     const userInfo = await getUserInfo(req.user.id);
     if (!userInfo) {
-      return res.status(404).json({ message: "Không tìm thấy thông tin user." });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy thông tin user." });
     }
 
     return res.status(200).json({ success: true, data: userInfo });
@@ -376,7 +375,13 @@ export const updateUserProfile = async (req, res) => {
       return res.status(500).json({ message: "Cập nhật thất bại." });
     }
 
-    return res.status(200).json({ success: true, message: "Cập nhật thành công.", data: updatedUser });
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Cập nhật thành công.",
+        data: updatedUser,
+      });
   } catch (error) {
     console.error("❌ Lỗi khi cập nhật profile:", error);
     return res.status(500).json({ message: "Lỗi server." });
@@ -384,22 +389,63 @@ export const updateUserProfile = async (req, res) => {
 };
 
 ////////////////////////////////////
-export const googleLoginCallback = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Google authentication failed" });
-  }
+// export const googleLoginCallback = (req, res) => {
+//   if (!req.user) {
+//     return res.status(401).json({ message: "Google authentication failed" });
+//   }
 
-  // Trả về thông tin user sau khi login thành công
-  res.status(200).json({
-    message: "Google login successful",
-    user: {
-      id: req.user.id,
-      email: req.user.email,
-      google_id: req.user.google_id,
-      provider: req.user.provider,
-      is_verified: req.user.is_verified,
-    },
-  });
+//   // Trả về thông tin user sau khi login thành công
+//   res.status(200).json({
+//     message: "Google login successful",
+//     user: {
+//       id: req.user.id,
+//       email: req.user.email,
+//       google_id: req.user.google_id,
+//       provider: req.user.provider,
+//       is_verified: req.user.is_verified,
+//     },
+//   });
+//   const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET_KEY, {
+//     expiresIn: "1d",
+//   });
+//   console.log("token gg được jwt tạo là:",token)
+
+//   // // Redirect về FE, gắn token vào URL
+//   res.redirect(`http://localhost:3000/google-success?token=${token}`);
+  
+// };
+export const googleLoginCallback = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Google authentication failed" });
+    }
+
+    const account = req.user;
+
+    const token = jwt.sign({ id: account.id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "1d",
+    });
+
+    console.log("Token JWT sau khi đăng nhập Google:", token);
+
+    // ❌ Đừng trả JSON nếu định redirect
+    // res.status(200).json({
+    //   message: "Google login successful",
+    //   user: {
+    //     id: account.id,
+    //     email: account.email,
+    //     google_id: account.google_id,
+    //     provider: account.provider,
+    //     is_verified: account.is_verified,
+    //   },
+    // });
+
+    // ✅ Chỉ redirect
+    return res.redirect(`http://localhost:5173/google-success?token=${token}`);
+  } catch (error) {
+    console.error("Lỗi khi xử lý callback Google:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
 
 export const getMe = async (req, res) => {
@@ -410,7 +456,7 @@ export const getMe = async (req, res) => {
     console.log("Get /me chạy thành công");
     return res.status(200).json({
       success: true,
-      message:"Get Me chạy thành công",
+      message: "Get Me chạy thành công",
       user: {
         id: req.user.id,
         email: req.user.email,
@@ -420,8 +466,8 @@ export const getMe = async (req, res) => {
         address: req.user.address,
         is_verified: req.user.is_verified,
         avatar: req.user.avatar,
-        provider: req.user.provider, 
-        role:req.user.role,
+        provider: req.user.provider,
+        role: req.user.role,
       },
     });
   } catch (error) {
@@ -430,10 +476,7 @@ export const getMe = async (req, res) => {
   }
 };
 
-
 ///////////////////////////////////
-
-
 
 export const changeAvatar = async (req, res) => {
   try {
