@@ -389,65 +389,41 @@ export const updateUserProfile = async (req, res) => {
 };
 
 ////////////////////////////////////
-// export const googleLoginCallback = (req, res) => {
-//   if (!req.user) {
-//     return res.status(401).json({ message: "Google authentication failed" });
-//   }
 
-//   // Trả về thông tin user sau khi login thành công
-//   res.status(200).json({
-//     message: "Google login successful",
-//     user: {
-//       id: req.user.id,
-//       email: req.user.email,
-//       google_id: req.user.google_id,
-//       provider: req.user.provider,
-//       is_verified: req.user.is_verified,
-//     },
-//   });
-//   const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET_KEY, {
-//     expiresIn: "1d",
-//   });
-//   console.log("token gg được jwt tạo là:",token)
-
-//   // // Redirect về FE, gắn token vào URL
-//   res.redirect(`http://localhost:3000/google-success?token=${token}`);
-  
-// };
 export const googleLoginCallback = async (req, res) => {
   try {
     if (!req.user) {
+      console.log("Google authentication failed");
+
       return res.status(401).json({ message: "Google authentication failed" });
     }
 
     const account = req.user;
 
-    const token = jwt.sign({ id: account.id }, process.env.JWT_SECRET_KEY, {
-      expiresIn: "1d",
+    // Tạo JWT token với cùng cách như postLogin (sử dụng encodedToken)
+    const token = await encodedToken(account);
+    console
+
+    // Set cookie giống postLogin
+    const expiresIn = 7 * 24 * 3600 * 1000; // 7 ngày
+    res.cookie("jwt_token", token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + expiresIn),
     });
+    console.log("Redirecting to:", `http://localhost:5173/google-success?token=${token}&tokenExpires=${Date.now() + expiresIn}`);
 
-    console.log("Token JWT sau khi đăng nhập Google:", token);
 
-    // ❌ Đừng trả JSON nếu định redirect
-    // res.status(200).json({
-    //   message: "Google login successful",
-    //   user: {
-    //     id: account.id,
-    //     email: account.email,
-    //     google_id: account.google_id,
-    //     provider: account.provider,
-    //     is_verified: account.is_verified,
-    //   },
-    // });
-
-    // ✅ Chỉ redirect
-    return res.redirect(`http://localhost:5173/google-success?token=${token}`);
+    // Redirect kèm token và thời gian hết hạn (nếu cần phía FE biết)
+    return res.redirect(
+      `http://localhost:5173/google-success?token=${token}&tokenExpires=${Date.now() + expiresIn}`
+    );
   } catch (error) {
     console.error("Lỗi khi xử lý callback Google:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
+///////////////////
 export const getMe = async (req, res) => {
   try {
     if (!req.user) {
