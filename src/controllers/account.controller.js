@@ -5,6 +5,7 @@ import {
   KEYS,
   ACCOUNT_TYPES,
   MAX,
+  ROLES,
 } from "../constant/index.js";
 import {
   encodedToken,
@@ -13,7 +14,7 @@ import {
 } from "../configs/jwt.config.js";
 import express from "express";
 const app = express();
-import { sendVerificationEmail } from "../configs/mail.config.js";
+import { sendVerificationEmail,sendResetPasswordEmail } from "../configs/mail.config.js";
 import {
   isExistAccount,
   findAccount,
@@ -28,6 +29,7 @@ import {
 import Account from "../models/account.js";
 import { uploadImage } from "../service/common.service.js";
 import jwt from "jsonwebtoken";
+import { createCustomer } from "../service/customer.service.js";
 
 
 export const registerLocal = async (req, res) => {
@@ -42,11 +44,9 @@ export const registerLocal = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("✅ Mật khẩu đã mã hóa");
 
-    // Tạo tài khoản
     const newAccount = await createAccount(
       email,
       hashedPassword,
@@ -60,11 +60,9 @@ export const registerLocal = async (req, res) => {
     }
     console.log("✅ Tạo tài khoản thành công:", newAccount);
 
-    // Tạo username
     const username = createUsername(email, newAccount.id);
     console.log("🔹 Username được tạo:", username);
 
-    // Tạo user
     console.log("🔹 Bắt đầu tạo user...");
     const newUser = await createUser(newAccount.id, name, username);
     if (!newUser) {
@@ -75,7 +73,12 @@ export const registerLocal = async (req, res) => {
     }
     console.log("✅ Tạo user thành công:", newUser);
 
-    // Gửi email xác thực
+    // 👉 Tạo Customer nếu user có role là 'customer'
+    if (newUser.role === ROLES.CUSTOMER) {
+      await createCustomer(newUser.user_id);
+      console.log("✅ Tạo customer thành công");
+    }
+
     const verifyToken = await encodedToken(newAccount);
     await sendVerificationEmail(email, verifyToken);
     console.log("📩 Email xác thực đã được gửi");
@@ -170,19 +173,7 @@ export const postLogin = async (req, res) => {
     return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
   }
 };
-// export const postLogout = async (req, res) => {
-//   try {
-//     // Xóa cookie "jwt_token" mà không cần chỉ định expires
-//     res.clearCookie("jwt_token", {
-//       httpOnly: true,
-//     });
 
-//     return res.status(200).json({ message: "Đăng xuất thành công" });
-//   } catch (error) {
-//     console.error("POST LOGOUT ERROR:", error);
-//     return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
-//   }
-// };
 
 /////////////////////////
 export const postLogout = async (req, res) => {
@@ -222,24 +213,19 @@ export const requestPasswordReset = async (req, res) => {
       return res.status(400).json({ message: "Email là bắt buộc." });
     }
 
-    // Kiểm tra tài khoản có tồn tại không
     const account = await findAccount(email.toLowerCase());
     if (!account) {
       return res.status(404).json({ message: "Tài khoản không tồn tại." });
     }
 
-    // Tạo token reset với thời gian hết hạn ngắn (ví dụ: 15 phút)
     const resetToken = await encodedToken(account, "15m");
 
-    // Trong môi trường production: gửi email reset password với đường link chứa token
-    // await sendResetPasswordEmail(email, resetToken);
+    // ➕ GỌI SEND EMAIL TẠI ĐÂY
+    await sendResetPasswordEmail(account.email, resetToken);
 
-    // Ở đây, để test, ta in token ra console và trả về response
     console.log(`Reset token cho ${email}: ${resetToken}`);
     return res.status(200).json({
-      message: "Yêu cầu đặt lại mật khẩu đã được gửi.",
-      // CHỈ DÙNG CHO MÔI TRƯỜNG TEST, không nên trả token cho người dùng ở production
-      resetToken,
+      message: "Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email.",
     });
   } catch (error) {
     console.error("Lỗi trong requestPasswordReset:", error);
@@ -249,14 +235,14 @@ export const requestPasswordReset = async (req, res) => {
   }
 };
 
-/**
- * Endpoint thực hiện reset password
- * POST /reset-password
- * Body: { token: string, newPassword: string }
- */
+//tạm ổn
+
+
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
+    console.log("token nhận được là",token);
+    console.log("newpassword nhận được là",newPassword);
     if (!token || !newPassword) {
       return res
         .status(400)
@@ -277,10 +263,8 @@ export const resetPassword = async (req, res) => {
       return res.status(404).json({ message: "Tài khoản không tồn tại." });
     }
 
-    // Mã hóa mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Cập nhật mật khẩu mới cho tài khoản
     await account.update({ password: hashedPassword });
 
     return res

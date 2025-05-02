@@ -3,8 +3,7 @@ import User from "../models/user.js";
 import Account from "../models/account.js";
 import { uploadImage } from "./common.service.js";
 import bcrypt from "bcryptjs";
-// import { createUsername } from "../helper/index.js";
-// import { hashPassword } from "../helper/index.js";
+
 
 export const isExistAccount = async (email) => {
   try {
