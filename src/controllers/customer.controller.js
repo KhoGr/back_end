@@ -1,4 +1,4 @@
-import * as customerService from "../services/customer.service.js";
+import * as customerService from "../service/customer.service.js"
 
 export const createCustomerController = async (req, res) => {
   try {
@@ -44,9 +44,16 @@ export const deleteCustomerController = async (req, res) => {
 
 export const getAllCustomersController = async (_req, res) => {
   try {
+    console.log("📥 Nhận yêu cầu lấy danh sách tất cả khách hàng...");
+
     const customers = await customerService.getAllCustomers();
+
+    console.log("✅ Lấy danh sách customer thành công. Số lượng:", customers.length);
+
     res.json(customers);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("❌ Lỗi khi lấy tất cả customers:", error);
+    res.status(500).json({ error: error.message || "Lỗi server khi lấy danh sách khách hàng." });
   }
 };
+

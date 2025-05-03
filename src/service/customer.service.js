@@ -1,5 +1,11 @@
 import Customer from "../models/customer.js";
 import User from "../models/user.js";
+import Account from "../models/account.js"; // cần có
+
+// Gọi associate để thiết lập quan hệ
+User.associate?.({ Account });
+Customer.associate?.({ User });
+
 
 // Tạo mới Customer
 export const createCustomer = async (userId, data = {}) => {
@@ -63,8 +69,11 @@ export const deleteCustomer = async (userId) => {
 // Lấy tất cả customer
 export const getAllCustomers = async () => {
   try {
-    return await Customer.findAll({ include: [{ model: User, as: "user" }] });
+    return await Customer.findAll({
+      include: [{ model: User, as: "user" }],
+    });
   } catch (error) {
-    throw error;
+    console.error("❌ Lỗi khi lấy tất cả customers:", error);
+    throw new Error("Không thể lấy danh sách customer.");
   }
 };
