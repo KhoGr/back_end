@@ -93,6 +93,78 @@ export const registerLocal = async (req, res) => {
     res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });
   }
 };
+//////////////////////////////
+
+
+export const registerStaff = async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    console.log("🔹 Bắt đầu đăng ký nhân viên:", { email, name });
+
+    // Kiểm tra tài khoản đã tồn tại chưa
+    const exists = await isExistAccount(email);
+    if (exists) {
+      console.warn("⚠️ Email đã tồn tại:", email);
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("✅ Mật khẩu đã mã hóa");
+
+    const newAccount = await createAccount(
+      email,
+      hashedPassword,
+      ACCOUNT_TYPES.LOCAL
+    );
+    if (!newAccount || !newAccount.id) {
+      console.error("❌ Lỗi tạo tài khoản:", newAccount);
+      return res
+        .status(409)
+        .json({ message: "Tạo tài khoản thất bại, thử lại" });
+    }
+    console.log("✅ Tạo tài khoản thành công:", newAccount);
+
+    const username = createUsername(email, newAccount.id);
+    console.log("🔹 Username được tạo:", username);
+
+    console.log("🔹 Bắt đầu tạo user...");
+    const newUser = await createUser(
+      newAccount.id,
+      name,
+      username,
+      "",     // avatar
+      "",     // phone
+      "",     // address
+      ROLES.STAFF // ✅ role truyền đúng vị trí
+    );    if (!newUser) {
+      console.error("❌ Lỗi khi tạo user:", newUser);
+      return res
+        .status(409)
+        .json({ message: "Tạo tài khoản thất bại, thử lại" });
+    }
+    console.log("✅ Tạo user thành công:", newUser);
+
+    // 👉 Tạo Staff nếu user có role là 'staff'
+    if (newUser.role === ROLES.STAFF) {
+      await createStaff(newUser.user_id); // 👈 Gọi hàm tạo staff
+      console.log("✅ Tạo staff thành công");
+    }
+
+    const verifyToken = await encodedToken(newAccount);
+    await sendVerificationEmail(email, verifyToken);
+    console.log("📩 Email xác thực đã được gửi");
+
+    res.status(201).json({
+      message: "Đăng ký nhân viên thành công! Kiểm tra email để xác nhận tài khoản.",
+      account: newAccount,
+      user: newUser,
+    });
+  } catch (error) {
+    console.error("❌ Lỗi đăng ký nhân viên:", error);
+    res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });
+  }
+};
+
 
 export const verifyAccount = async (req, res) => {
   try {

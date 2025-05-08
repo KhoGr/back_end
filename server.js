@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import accountApi from "./src/apis/account.api.js"; // Import route của account
 import categoryApi from "./src/apis/category.api.js";
 import customerApi from "./src/apis/customer.api.js";
+import staffApi from "./src/apis/staff.api.js";
 //////////////////////////////////
 
 import { sequelize } from "./src/config/database.js"; // Import kết nối Sequelize
@@ -51,6 +52,7 @@ checkDatabaseConnection();
 app.use("/api/account", accountApi);
 app.use("/api/customer", customerApi);
 app.use("/api/category", categoryApi);
+app.use("/api/staff", staffApi);
 
 
 // Khởi động server

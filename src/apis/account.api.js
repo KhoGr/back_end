@@ -11,7 +11,8 @@ import {
   getUserProfile,
   updateUserProfile,
   googleLoginCallback,
-  getMe
+  getMe,
+  registerStaff
 } from "../controllers/account.controller.js";
 import  passport  from "../middlewares/passport.js";
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
@@ -21,6 +22,8 @@ const accountApi = Router();
 //đăng ký qua FE thành công
 
 accountApi.post("/register", registerLocal);
+accountApi.post("/staff-register", registerStaff);
+
 
 accountApi.get("/verify-account", verifyAccount);
 // Đăng nhập qua FE thành công 
