@@ -34,3 +34,10 @@ export const verifyStaffOrAdmin = async (req, res, next) => {
         return res.status(500).json({ message: "Lỗi xác thực quyền." });
     }
 };
+export const checkLogin=(req,res,next)=>{
+    if(req.session.token){
+
+        return res.redirect("/dashboard");
+    }
+    next();
+}

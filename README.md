@@ -1,93 +1,62 @@
-# Hướng dẫn tạo và quản lý database bằng Sequelize
+-- Tạo database nếu chưa tồn tại
+CREATE DATABASE IF NOT EXISTS mini_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-Đây là hướng dẫn ngắn gọn để thiết lập và quản lý cơ sở dữ liệu MySQL bằng cách sử dụng Sequelize.
+-- Sử dụng database vừa tạo
+USE mini_ecommerce;
 
----
+-- Bảng Accounts
+CREATE TABLE Accounts (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255),
+  google_id VARCHAR(100) UNIQUE,
+  google_token VARCHAR(255),
+  facebook_id VARCHAR(100) UNIQUE,
+  facebook_token VARCHAR(255),
+  provider ENUM('google', 'facebook', 'local') DEFAULT 'local',
+  is_verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-## **Yêu cầu**
+-- Bảng Users
+CREATE TABLE Users (
+  user_id INT AUTO_INCREMENT PRIMARY KEY,
+  account_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  avatar VARCHAR(255),
+  phone VARCHAR(15) UNIQUE,
+  address TEXT,
+  role ENUM('admin', 'customer', 'seller') DEFAULT 'customer',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (account_id) REFERENCES Accounts(id) ON DELETE CASCADE
+);
 
-1. **Node.js**: Đảm bảo đã cài đặt Node.js trên máy.
-2. **Sequelize CLI**: Cài đặt Sequelize CLI bằng lệnh:
-   ```bash
-   npm install -g sequelize-cli
-   ```
-3. **MySQL**: Đảm bảo MySQL đã được cài đặt và chạy.
+-- Bảng Staffs
+CREATE TABLE Staffs (
+  staff_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  position VARCHAR(100),
+  salary DECIMAL(10, 2),
+  working_type ENUM('fulltime', 'parttime') DEFAULT 'fulltime',
+  joined_date DATE,
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
 
----
-
-## **Các bước cài đặt và tạo database**
-
-### 1. Tạo file cấu hình Sequelize
-
-Tạo file `config/config.json` trong thư mục dự án với nội dung như sau:
-
-```json
-{
-  "development": {
-    "username": "root",
-    "password": "yourpassword",
-    "database": "yourdatabase",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
-  },
-  "test": {
-    "username": "root",
-    "password": "yourpassword",
-    "database": "test_database",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
-  },
-  "production": {
-    "username": "root",
-    "password": "yourpassword",
-    "database": "production_database",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
-  }
-}
-```
-> **Lưu ý:** Thay thế `yourpassword` và `yourdatabase` bằng thông tin của bạn.
-
-### 2. Tạo cơ sở dữ liệu trong MySQL
-
-Sử dụng câu lệnh dưới đây để tạo cơ sở dữ liệu:
-
-```sql
-CREATE DATABASE yourdatabase;
-```
-> **Lưu ý:** Đảm bảo tên database trong MySQL trùng khớp với tên trong file cấu hình `config/config.json`.
-
----
-
-## **Các bước migrate database**
-
-### 1. Khởi tạo Sequelize trong dự án
-
-Chạy lệnh sau để khởi tạo Sequelize:
-```bash
-npx sequelize init
-```
-
-Lệnh này sẽ tạo các thư mục mặc định: `models`, `migrations`, và `seeders`.
-
-### 2. Tạo file migration
-
-Tạo các file migration cho bảng `Accounts` và `Users`:
-```bash
-npx sequelize migration:generate --name create-accounts-table
-npx sequelize migration:generate --name create-users-table
-```
-
-### 3. Chạy migration
-
-Chạy lệnh migrate để áp dụng các thay đổi:
-```bash
-npx sequelize db:migrate
-```
-
-Sau khi thực hiện lệnh này, các bảng sẽ được tạo trong cơ sở dữ liệu theo cấu trúc được định nghĩa trong file migration.
-
----
-
-**Hoàn thành!** Bây giờ cơ sở dữ liệu đã được thiết lập với các bảng ban đầu. Nếu bạn cần seed dữ liệu hoặc rollback migration, hãy tiếp tục thêm các bước chi tiết.
-
+-- Bảng Customers
+CREATE TABLE Customers (
+  customer_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  loyalty_point INT DEFAULT 0,
+  total_spent DECIMAL(10, 2) DEFAULT 0.00,
+  membership_level ENUM('bronze', 'silver', 'gold', 'platinum') DEFAULT 'bronze',
+  note TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);

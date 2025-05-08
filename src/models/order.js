@@ -1,19 +1,54 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js"; 
-class Order extends Model{
-
+import { Model, DataTypes, AssociationError } from "sequelize";
+import { sequelize } from "../config/database.js";
+class Order extends Model {
+  static Associate(models) {
+    Order.belongsTo(models.User, {
+      foreignKey: "user_id",
+      as: "user",
+      onDelete: "CASCADE",
+    });
+  }
 }
+Order.init({
+  order_id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+    allowNull: false,
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: "Users",
+      key: "id",
+    },
+    total_price:{
+      type:DataTypes.DECIMAL(10,2),
+      allowNull:false,
+    },
+    order_status:{
+     type:DataTypes.ENUM('pending', 'completed', 'shipped', 'cancelled'),
+     defaultValue:'pending',
+    },
+    shipping_adress:{
+      type :DataTypes.TEXT,
+      allowNull:true,
 
+    },
+    payment_method:{
+      type: DataTypes.ENUM('COD','ONLINE','OFFLINE'),
+      defaultValue:'ONLINE'
+    },
+    created_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
 
+  },
+});
 
-
-/*Table Orders {
-    id INT [pk, increment, not null]
-    user_id INT [ref: > Users.user_id, not null]
-    total_price DECIMAL(10, 2) [not null]
-    order_status ENUM('pending', 'completed', 'shipped', 'cancelled') [default: 'pending']
-    shipping_address TEXT
-    payment_method ENUM('COD', 'online') [default: 'COD']
-    created_at TIMESTAMP [default: 'CURRENT_TIMESTAMP']
-    updated_at TIMESTAMP [default: 'CURRENT_TIMESTAMP']
-  }*/

@@ -5,6 +5,7 @@ import {
   KEYS,
   ACCOUNT_TYPES,
   MAX,
+  ROLES,
 } from "../constant/index.js";
 import {
   encodedToken,
@@ -13,17 +14,23 @@ import {
 } from "../configs/jwt.config.js";
 import express from "express";
 const app = express();
-import { sendVerificationEmail } from "../configs/mail.config.js";
+import { sendVerificationEmail,sendResetPasswordEmail } from "../configs/mail.config.js";
 import {
   isExistAccount,
   findAccount,
   createAccount,
   createUser,
   changeUserPassword,
-  updateAvt,
+  uploadAvatar,
   getUserInfo,
-  updateProfile} from "../service/account.service.js";
+  updateProfile,
+  updateUserAvatar,
+} from "../service/account.service.js";
 import Account from "../models/account.js";
+import { uploadImage } from "../service/common.service.js";
+import jwt from "jsonwebtoken";
+import { createCustomer } from "../service/customer.service.js";
+
 
 export const registerLocal = async (req, res) => {
   try {
@@ -37,11 +44,9 @@ export const registerLocal = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log("✅ Mật khẩu đã mã hóa");
 
-    // Tạo tài khoản
     const newAccount = await createAccount(
       email,
       hashedPassword,
@@ -55,11 +60,9 @@ export const registerLocal = async (req, res) => {
     }
     console.log("✅ Tạo tài khoản thành công:", newAccount);
 
-    // Tạo username
     const username = createUsername(email, newAccount.id);
     console.log("🔹 Username được tạo:", username);
 
-    // Tạo user
     console.log("🔹 Bắt đầu tạo user...");
     const newUser = await createUser(newAccount.id, name, username);
     if (!newUser) {
@@ -70,7 +73,12 @@ export const registerLocal = async (req, res) => {
     }
     console.log("✅ Tạo user thành công:", newUser);
 
-    // Gửi email xác thực
+    // 👉 Tạo Customer nếu user có role là 'customer'
+    if (newUser.role === ROLES.CUSTOMER) {
+      await createCustomer(newUser.user_id);
+      console.log("✅ Tạo customer thành công");
+    }
+
     const verifyToken = await encodedToken(newAccount);
     await sendVerificationEmail(email, verifyToken);
     console.log("📩 Email xác thực đã được gửi");
@@ -85,6 +93,78 @@ export const registerLocal = async (req, res) => {
     res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });
   }
 };
+//////////////////////////////
+
+
+export const registerStaff = async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    console.log("🔹 Bắt đầu đăng ký nhân viên:", { email, name });
+
+    // Kiểm tra tài khoản đã tồn tại chưa
+    const exists = await isExistAccount(email);
+    if (exists) {
+      console.warn("⚠️ Email đã tồn tại:", email);
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("✅ Mật khẩu đã mã hóa");
+
+    const newAccount = await createAccount(
+      email,
+      hashedPassword,
+      ACCOUNT_TYPES.LOCAL
+    );
+    if (!newAccount || !newAccount.id) {
+      console.error("❌ Lỗi tạo tài khoản:", newAccount);
+      return res
+        .status(409)
+        .json({ message: "Tạo tài khoản thất bại, thử lại" });
+    }
+    console.log("✅ Tạo tài khoản thành công:", newAccount);
+
+    const username = createUsername(email, newAccount.id);
+    console.log("🔹 Username được tạo:", username);
+
+    console.log("🔹 Bắt đầu tạo user...");
+    const newUser = await createUser(
+      newAccount.id,
+      name,
+      username,
+      "",     // avatar
+      "",     // phone
+      "",     // address
+      ROLES.STAFF // ✅ role truyền đúng vị trí
+    );    if (!newUser) {
+      console.error("❌ Lỗi khi tạo user:", newUser);
+      return res
+        .status(409)
+        .json({ message: "Tạo tài khoản thất bại, thử lại" });
+    }
+    console.log("✅ Tạo user thành công:", newUser);
+
+    // 👉 Tạo Staff nếu user có role là 'staff'
+    if (newUser.role === ROLES.STAFF) {
+      await createStaff(newUser.user_id); // 👈 Gọi hàm tạo staff
+      console.log("✅ Tạo staff thành công");
+    }
+
+    const verifyToken = await encodedToken(newAccount);
+    await sendVerificationEmail(email, verifyToken);
+    console.log("📩 Email xác thực đã được gửi");
+
+    res.status(201).json({
+      message: "Đăng ký nhân viên thành công! Kiểm tra email để xác nhận tài khoản.",
+      account: newAccount,
+      user: newUser,
+    });
+  } catch (error) {
+    console.error("❌ Lỗi đăng ký nhân viên:", error);
+    res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });
+  }
+};
+
 
 export const verifyAccount = async (req, res) => {
   try {
@@ -118,7 +198,7 @@ export const verifyAccount = async (req, res) => {
     await account.update({ is_verified: true });
 
     // Sau khi xác minh thành công, chuyển hướng người dùng tới trang chủ của client
-    return res.redirect(`${process.env.CLIENT_URL}/home`);
+    return res.redirect(`${process.env.CLIENT_URL}/account/login`);
   } catch (error) {
     console.error("❌ Lỗi xác minh tài khoản:", error);
     return res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });
@@ -137,11 +217,9 @@ export const postLogin = async (req, res) => {
     }
 
     if (!account.is_verified) {
-      return res
-        .status(403)
-        .json({
-          message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
-        });
+      return res.status(403).json({
+        message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
+      });
     }
 
     const isMatch = await bcrypt.compare(password, account.password);
@@ -154,32 +232,20 @@ export const postLogin = async (req, res) => {
 
     res.cookie("jwt_token", token, {
       httpOnly: true,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // Cookie hết hạn sau 1 ngày
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000), // Cookie hết hạn sau 1 ngày
     });
 
     return res.status(200).json({
       message: "Đăng nhập thành công",
       token,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
     });
   } catch (error) {
     console.error("POST LOGIN ERROR: ", error);
     return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
   }
 };
-// export const postLogout = async (req, res) => {
-//   try {
-//     // Xóa cookie "jwt_token" mà không cần chỉ định expires
-//     res.clearCookie("jwt_token", {
-//       httpOnly: true,
-//     });
 
-//     return res.status(200).json({ message: "Đăng xuất thành công" });
-//   } catch (error) {
-//     console.error("POST LOGOUT ERROR:", error);
-//     return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
-//   }
-// };
 
 /////////////////////////
 export const postLogout = async (req, res) => {
@@ -193,10 +259,10 @@ export const postLogout = async (req, res) => {
         }
       });
     }
-    
+
     // Xóa cookie chứa JWT (dù bạn dùng session hay JWT lưu cookie, xóa cookie vẫn an toàn)
     res.clearCookie("jwt_token", { httpOnly: true });
-    
+
     return res.status(200).json({ message: "Đăng xuất thành công" });
   } catch (error) {
     console.error("POST LOGOUT ERROR:", error);
@@ -219,24 +285,19 @@ export const requestPasswordReset = async (req, res) => {
       return res.status(400).json({ message: "Email là bắt buộc." });
     }
 
-    // Kiểm tra tài khoản có tồn tại không
     const account = await findAccount(email.toLowerCase());
     if (!account) {
       return res.status(404).json({ message: "Tài khoản không tồn tại." });
     }
 
-    // Tạo token reset với thời gian hết hạn ngắn (ví dụ: 15 phút)
     const resetToken = await encodedToken(account, "15m");
 
-    // Trong môi trường production: gửi email reset password với đường link chứa token
-    // await sendResetPasswordEmail(email, resetToken);
+    // ➕ GỌI SEND EMAIL TẠI ĐÂY
+    await sendResetPasswordEmail(account.email, resetToken);
 
-    // Ở đây, để test, ta in token ra console và trả về response
     console.log(`Reset token cho ${email}: ${resetToken}`);
     return res.status(200).json({
-      message: "Yêu cầu đặt lại mật khẩu đã được gửi.",
-      // CHỈ DÙNG CHO MÔI TRƯỜNG TEST, không nên trả token cho người dùng ở production
-      resetToken,
+      message: "Yêu cầu đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra email.",
     });
   } catch (error) {
     console.error("Lỗi trong requestPasswordReset:", error);
@@ -246,14 +307,14 @@ export const requestPasswordReset = async (req, res) => {
   }
 };
 
-/**
- * Endpoint thực hiện reset password
- * POST /reset-password
- * Body: { token: string, newPassword: string }
- */
+//tạm ổn
+
+
 export const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
+    console.log("token nhận được là",token);
+    console.log("newpassword nhận được là",newPassword);
     if (!token || !newPassword) {
       return res
         .status(400)
@@ -274,10 +335,8 @@ export const resetPassword = async (req, res) => {
       return res.status(404).json({ message: "Tài khoản không tồn tại." });
     }
 
-    // Mã hóa mật khẩu mới
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Cập nhật mật khẩu mới cho tài khoản
     await account.update({ password: hashedPassword });
 
     return res
@@ -328,28 +387,6 @@ export const updatePassword = async (req, res) => {
   }
 };
 
-export const ChangeAvt = async (req, res) => {
-  try {
-    const { username, avtSrc } = req.body;
-    console.log("username khi up avatar:", username);
-    if (!username || !avtSrc) {
-      return res.status(400).json({ error: "Thiếu username hoặc avtSrc" });
-    }
-    const updateAvatar = await updateAvt(username, avtSrc);
-
-    if (!updateAvatar) {
-      return res.status(401).json({ error: "cập nhật avatar thấtvại " });
-    }
-    return res.json({
-      message: "Cập nhật avatar thành công",
-      avatar: updatedAvt,
-    });
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
-  }
-};
-
-
 export const getUserProfile = async (req, res) => {
   try {
     if (!req.user) {
@@ -358,7 +395,9 @@ export const getUserProfile = async (req, res) => {
 
     const userInfo = await getUserInfo(req.user.id);
     if (!userInfo) {
-      return res.status(404).json({ message: "Không tìm thấy thông tin user." });
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy thông tin user." });
     }
 
     return res.status(200).json({ success: true, data: userInfo });
@@ -392,7 +431,13 @@ export const updateUserProfile = async (req, res) => {
       return res.status(500).json({ message: "Cập nhật thất bại." });
     }
 
-    return res.status(200).json({ success: true, message: "Cập nhật thành công.", data: updatedUser });
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Cập nhật thành công.",
+        data: updatedUser,
+      });
   } catch (error) {
     console.error("❌ Lỗi khi cập nhật profile:", error);
     return res.status(500).json({ message: "Lỗi server." });
@@ -400,20 +445,95 @@ export const updateUserProfile = async (req, res) => {
 };
 
 ////////////////////////////////////
-export const googleLoginCallback = (req, res) => {
-  if (!req.user) {
-    return res.status(401).json({ message: "Google authentication failed" });
-  }
 
-  // Trả về thông tin user sau khi login thành công
-  res.status(200).json({
-    message: "Google login successful",
-    user: {
-      id: req.user.id,
-      email: req.user.email,
-      google_id: req.user.google_id,
-      provider: req.user.provider,
-      is_verified: req.user.is_verified,
-    },
-  });
+export const googleLoginCallback = async (req, res) => {
+  try {
+    if (!req.user) {
+      console.log("Google authentication failed");
+
+      return res.status(401).json({ message: "Google authentication failed" });
+    }
+
+    const account = req.user;
+
+    // Tạo JWT token với cùng cách như postLogin (sử dụng encodedToken)
+    const token = await encodedToken(account);
+    console
+
+    // Set cookie giống postLogin
+    const expiresIn = 7 * 24 * 3600 * 1000; // 7 ngày
+    res.cookie("jwt_token", token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + expiresIn),
+    });
+    console.log("Redirecting to:", `http://localhost:5173/google-success?token=${token}&tokenExpires=${Date.now() + expiresIn}`);
+
+
+    // Redirect kèm token và thời gian hết hạn (nếu cần phía FE biết)
+    return res.redirect(
+      `http://localhost:5173/google-success?token=${token}&tokenExpires=${Date.now() + expiresIn}`
+    );
+  } catch (error) {
+    console.error("Lỗi khi xử lý callback Google:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+///////////////////
+export const getMe = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    console.log("Get /me chạy thành công");
+    return res.status(200).json({
+      success: true,
+      message: "Get Me chạy thành công",
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        name: req.user.name,
+        username: req.user.username,
+        phone: req.user.phone,
+        address: req.user.address,
+        is_verified: req.user.is_verified,
+        avatar: req.user.avatar,
+        provider: req.user.provider,
+        role: req.user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Lỗi GET ME: ", error);
+    return res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+///////////////////////////////////
+
+export const changeAvatar = async (req, res) => {
+  try {
+    const { username } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "Vui lòng chọn ảnh" });
+    }
+
+    // Upload ảnh lên Cloudinary
+    const avatarUrl = await uploadImage(file.path, "avatars");
+
+    // Cập nhật avatar trong DB bằng service
+    const updatedUser = await updateUserAvatar(username, avatarUrl);
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "Không tìm thấy user!" });
+    }
+
+    return res.json({
+      message: "Cập nhật avatar thành công!",
+      avatar: updatedUser.avatar,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
 };
