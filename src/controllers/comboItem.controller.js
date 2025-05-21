@@ -1,11 +1,11 @@
-import comboItemService from '../service/combo.service.js'
+import comboItemService from '../service/comboItem.service.js';
 
 class ComboItemController {
   // Thêm một món vào combo
   async addItem(req, res) {
     try {
-      const { combo_id, item_id, quantity } = req.body;
-      const result = await comboItemService.addItemToCombo(combo_id, item_id, quantity);
+      const { combo_id, item_id, name, quantity } = req.body;
+      const result = await comboItemService.addItemToCombo(combo_id, item_id, name, quantity);
       res.status(201).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message || 'Failed to add item to combo' });
@@ -23,19 +23,19 @@ class ComboItemController {
     }
   }
 
-  // Cập nhật số lượng món trong combo
+  // Cập nhật thông tin món trong combo (quantity, name,...)
   async updateItem(req, res) {
     try {
       const { combo_id, item_id } = req.params;
-      const { quantity } = req.body;
-      const updated = await comboItemService.updateComboItem(combo_id, item_id, quantity);
+      const updateData = req.body; // { quantity, name, ... }
+      const updated = await comboItemService.updateComboItem(combo_id, item_id, updateData);
       res.status(200).json(updated);
     } catch (error) {
       res.status(500).json({ message: error.message || 'Failed to update combo item' });
     }
   }
 
-  // Xoá một món ra khỏi combo
+  // Xoá một món khỏi combo
   async removeItem(req, res) {
     try {
       const { combo_id, item_id } = req.params;
@@ -46,7 +46,7 @@ class ComboItemController {
     }
   }
 
-  // Xoá toàn bộ món trong combo
+  // Xoá tất cả món trong combo
   async clearCombo(req, res) {
     try {
       const { combo_id } = req.params;
@@ -54,6 +54,22 @@ class ComboItemController {
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: error.message || 'Failed to clear combo' });
+    }
+  }
+
+  // Tìm kiếm món trong combo theo từ khoá
+  async searchComboItem(req, res) {
+    try {
+      const { combo_id } = req.params;
+      const { keyword } = req.query;
+      if (!keyword) {
+        return res.status(400).json({ message: 'Missing keyword for search' });
+      }
+
+      const results = await comboItemService.searchItemsInCombo(combo_id, keyword);
+      res.status(200).json(results);
+    } catch (error) {
+      res.status(500).json({ message: error.message || 'Failed to search combo item' });
     }
   }
 }
