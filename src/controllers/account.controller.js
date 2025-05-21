@@ -245,7 +245,49 @@ export const postLogin = async (req, res) => {
     return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
   }
 };
+//adminlogin
+export const adminLogin = async (req, res) => {
+  try {
+    const email = req.body.email?.toLowerCase();
+    const { password } = req.body;
 
+    const account = await findAccount(email);
+    if (!account) {
+      return res.status(406).json({ message: "Tài khoản không tồn tại" });
+    }
+
+    if (!account.is_verified) {
+      return res.status(403).json({
+        message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
+      });
+    }
+
+    // ❗️Kiểm tra quyền
+    if (account.role !== "admin") {
+      return res.status(403).json({ message: "Tài khoản không có quyền admin" });
+    }
+
+    const isMatch = await bcrypt.compare(password, account.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Mật khẩu không đúng" });
+    }
+
+    const token = await encodedToken(account);
+    res.cookie("jwt_token", token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    });
+
+    return res.status(200).json({
+      message: "Đăng nhập admin thành công",
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    });
+  } catch (error) {
+    console.error("ADMIN LOGIN ERROR: ", error);
+    return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
+  }
+};
 
 /////////////////////////
 export const postLogout = async (req, res) => {

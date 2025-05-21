@@ -17,12 +17,12 @@ export const encodedToken = async (user, expire = JWT_EXPIRES_TIME) => {
   try {
     const payload = {
       iss: process.env.JWT_ISS || 'default_issuer',
-      sub: user.email,    // Lưu email vào trường 'sub'
-      userId: user.id,    // Lưu ID của người dùng (nếu cần)
+      sub: user.email,    
+      userId: user.id,    
     };
     console.log("📌 Payload trước khi tạo token:", payload);
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '3m' });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1440m' });
     console.log("Generated token:", token);
 
     return token;

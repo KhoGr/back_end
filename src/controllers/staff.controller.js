@@ -3,7 +3,7 @@ import {
     getStaffByUserId,
     updateStaffByUserId,
     deleteStaffByUserId,
-  } from '../services/staff.service.js';
+  } from '../service/staff.service.js';
   
   /**
    * Tạo mới nhân viên từ user_id và dữ liệu bổ sung

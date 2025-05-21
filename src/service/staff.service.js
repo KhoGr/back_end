@@ -1,4 +1,4 @@
-import Staff from '../models/staff.model.js';
+import Staff from '../models/staff.js';
 
 /**
  * Tạo mới bản ghi nhân viên từ user_id

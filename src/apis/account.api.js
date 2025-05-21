@@ -18,30 +18,34 @@ import  passport  from "../middlewares/passport.js";
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
 import { checkLogin } from "../middlewares/auth.middleware.js";
 import {upload} from "../middlewares/upload.middleware.js"
+import { verifyAdmin } from "../middlewares/auth.middleware.js";
+
 const accountApi = Router();
-//đăng ký qua FE thành công
 
 accountApi.post("/register", registerLocal);
 accountApi.post("/staff-register", registerStaff);
 
 
+
 accountApi.get("/verify-account", verifyAccount);
-// Đăng nhập qua FE thành công 
-accountApi.post("/login", checkLogin,postLogin);
+
+accountApi.post("/login", checkLogin,postLogin); //login bất kỳ
+accountApi.post("/admin-login", checkLogin,postLogin); //login cho admin
+
+
+
 accountApi.post("/logout", postLogout);
 accountApi.get("/me",jwtAuthentication,getMe);
 
 
-//quên mật khẩu
 accountApi.post("/reset-password-request", requestPasswordReset);
 
 accountApi.post("/reset-password", resetPassword);
-//update mật khẩu
 
 accountApi.put('/update-password', jwtAuthentication, updatePassword);
-accountApi.put("/update-avt",upload.single("avatar"), jwtAuthentication, changeAvatar);// bug
+accountApi.put("/update-avt",upload.single("avatar"), jwtAuthentication, changeAvatar);
 accountApi.get("/profile", jwtAuthentication, getUserProfile);
-accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);// thành công nhưng cần bổ sung bảo mật
+accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);
 
 
 // Route bắt đầu đăng nhập Google
