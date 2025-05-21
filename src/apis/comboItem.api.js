@@ -5,19 +5,22 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const comboItemApi = Router();
 
-// Lấy danh sách các món trong combo
+// 🔍 Tìm kiếm món trong combo theo keyword (?keyword=...)
+comboItemApi.get('/search/:combo_id', ComboItemController.searchComboItem);
+
+// 📋 Lấy danh sách các món trong combo
 comboItemApi.get('/:combo_id', ComboItemController.getItems);
 
-// Thêm một món vào combo
+// ➕ Thêm một món vào combo
 comboItemApi.post('/', jwtAuthentication, verifyAdmin, ComboItemController.addItem);
 
-// Cập nhật số lượng món trong combo
+// 🔄 Cập nhật thông tin món trong combo
 comboItemApi.put('/:combo_id/:item_id', jwtAuthentication, verifyAdmin, ComboItemController.updateItem);
 
-// Xoá một món ra khỏi combo
+// ❌ Xoá một món khỏi combo
 comboItemApi.delete('/:combo_id/:item_id', jwtAuthentication, verifyAdmin, ComboItemController.removeItem);
 
-// Xoá toàn bộ món trong combo
+// 🧹 Xoá toàn bộ món trong combo
 comboItemApi.delete('/:combo_id', jwtAuthentication, verifyAdmin, ComboItemController.clearCombo);
 
 export default comboItemApi;
