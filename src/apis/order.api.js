@@ -1,23 +1,32 @@
-// routes/order.route.js
-
 import { Router } from 'express';
 import OrderController from '../controllers/order.controller.js';
+import { jwtAuthentication } from '../middlewares/passport.middleware.js';
+import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-// Lấy danh sách tất cả đơn hàng
-router.get('/', OrderController.getAll);
+// 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
+router.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
 
-// Tạo mới đơn hàng
-router.post('/', OrderController.create);
+// 🔍 Tìm kiếm đơn hàng theo từ khóa
+router.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
 
-// Lấy thông tin đơn hàng theo ID
-router.get('/:id', OrderController.getById);
+// 📊 Lọc đơn hàng theo trạng thái
+router.get('/status/:status', jwtAuthentication, verifyAdmin, OrderController.filterByStatus);
 
-// Cập nhật trạng thái đơn hàng
-router.put('/:id/status', OrderController.updateStatus);
+// 🆕 Tạo mới đơn hàng (khách hàng hoặc nhân viên)
+router.post('/', jwtAuthentication, OrderController.create);
 
-// Xoá đơn hàng
-router.delete('/:id', OrderController.remove);
+// 📦 Lấy chi tiết đơn hàng theo ID (khách hàng có thể xem đơn của mình)
+router.get('/:id', jwtAuthentication, OrderController.getById);
+
+// 🔄 Cập nhật đơn hàng (toàn bộ)
+router.put('/:id', jwtAuthentication, verifyAdmin, OrderController.update);
+
+// 🔁 Chỉ cập nhật trạng thái
+router.patch('/:id/status', jwtAuthentication, verifyAdmin, OrderController.updateStatus);
+
+// ❌ Xoá đơn hàng (admin)
+router.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
 
 export default router;
