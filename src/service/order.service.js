@@ -1,115 +1,96 @@
-// services/order.service.js
+import Order from '../models/order.js';
+import Customer from '../models/customer.js';
+import Staff from '../models/staff.js';
+import OrderItem from '../models/order_item.js';
+import { Op } from 'sequelize';
 
-import db from '../models/index.js';
-
-const OrderService = {
-  async createOrder(data) {
-    const { customer_id, staff_id, order_items, note } = data;
-
-    return await db.sequelize.transaction(async (t) => {
-      // Tính tổng tiền
-      let total_amount = 0;
-      for (const item of order_items) {
-        const menuItem = await db.MenuItem.findByPk(item.item_id);
-        if (!menuItem || !menuItem.is_available) {
-          throw new Error(`Item ${item.item_id} is unavailable`);
-        }
-
-        let itemPrice = menuItem.price;
-        if (menuItem.discount_percent) {
-          itemPrice = itemPrice * (1 - menuItem.discount_percent / 100);
-        }
-
-        total_amount += itemPrice * item.quantity;
-      }
-
-      // Tạo order
-      const order = await db.Order.create(
+const orderService = {
+  // 🆕 Tạo đơn hàng mới
+  async createOrder(orderData) {
+    return await Order.create(orderData, {
+      include: [
         {
-          customer_id,
-          staff_id,
-          total_amount,
-          note,
+          model: OrderItem,
+          as: 'order_items',
         },
-        { transaction: t }
-      );
-
-      // Tạo các order items
-      const itemsToCreate = order_items.map((item) => ({
-        order_id: order.order_id,
-        item_id: item.item_id,
-        quantity: item.quantity,
-      }));
-
-      await db.OrderItem.bulkCreate(itemsToCreate, { transaction: t });
-
-      return order;
+      ],
     });
   },
 
+  // 📋 Lấy toàn bộ đơn hàng (có thể phân trang sau)
   async getAllOrders() {
-    return await db.Order.findAll({
+    return await Order.findAll({
       include: [
-        {
-          model: db.Customer,
-          as: 'customer',
-        },
-        {
-          model: db.Staff,
-          as: 'staff',
-        },
-        {
-          model: db.OrderItem,
-          as: 'order_items',
-          include: {
-            model: db.MenuItem,
-            as: 'menu_item',
-          },
-        },
+        { model: Customer, as: 'customer', attributes: ['customer_id', 'name', 'email'] },
+        { model: Staff, as: 'staff', attributes: ['staff_id', 'name'] },
+        { model: OrderItem, as: 'order_items' },
       ],
       order: [['order_date', 'DESC']],
     });
   },
 
+  // 🔍 Lấy đơn hàng theo ID
   async getOrderById(order_id) {
-    return await db.Order.findByPk(order_id, {
+    const order = await Order.findByPk(order_id, {
       include: [
-        {
-          model: db.Customer,
-          as: 'customer',
-        },
-        {
-          model: db.Staff,
-          as: 'staff',
-        },
-        {
-          model: db.OrderItem,
-          as: 'order_items',
-          include: {
-            model: db.MenuItem,
-            as: 'menu_item',
-          },
-        },
+        { model: Customer, as: 'customer', attributes: ['customer_id', 'name', 'email'] },
+        { model: Staff, as: 'staff', attributes: ['staff_id', 'name'] },
+        { model: OrderItem, as: 'order_items' },
       ],
     });
-  },
-
-  async updateOrderStatus(order_id, status) {
-    const order = await db.Order.findByPk(order_id);
     if (!order) throw new Error('Order not found');
-
-    order.status = status;
-    await order.save();
     return order;
   },
 
-  async deleteOrder(order_id) {
-    const order = await db.Order.findByPk(order_id);
+  // 🔄 Cập nhật đơn hàng
+  async updateOrder(order_id, updateData) {
+    const order = await Order.findByPk(order_id);
     if (!order) throw new Error('Order not found');
+    await order.update(updateData);
+    return order;
+  },
 
-    await order.destroy();
-    return true;
+  // ❌ Xoá đơn hàng
+  async deleteOrder(order_id) {
+    const deletedCount = await Order.destroy({ where: { order_id } });
+    if (deletedCount === 0) throw new Error('Order not found or already deleted');
+    return { message: 'Order deleted successfully' };
+  },
+
+  // 🔍 Tìm kiếm đơn hàng theo keyword (theo tên khách hàng hoặc ghi chú)
+  async searchOrders(keyword) {
+    return await Order.findAll({
+      include: [
+        {
+          model: Customer,
+          as: 'customer',
+          where: {
+            name: { [Op.like]: `%${keyword}%` },
+          },
+          required: false,
+        },
+        { model: Staff, as: 'staff' },
+        { model: OrderItem, as: 'order_items' },
+      ],
+      where: {
+        [Op.or]: [
+          { note: { [Op.like]: `%${keyword}%` } },
+        ],
+      },
+    });
+  },
+
+  // 📊 Lọc theo trạng thái
+  async getOrdersByStatus(status) {
+    return await Order.findAll({
+      where: { status },
+      include: [
+        { model: Customer, as: 'customer' },
+        { model: Staff, as: 'staff' },
+        { model: OrderItem, as: 'order_items' },
+      ],
+    });
   },
 };
 
-export default OrderService;
+export default orderService;
