@@ -9,6 +9,7 @@ import customerApi from "./src/apis/customer.api.js";
 import staffApi from "./src/apis/staff.api.js";
 import menuItemApi from "./src/apis/menuItem.api.js"
 import comboItemApi from "./src/apis/comboItem.api.js"
+import orderAPI from "./src/apis/order.api.js";
 //////////////////////////////////
 
 import { sequelize } from "./src/config/database.js"; // Import kết nối Sequelize
@@ -58,6 +59,7 @@ app.use("/api/staff", staffApi);
 app.use("/api/category", categoryApi);
 app.use("/api/menuitem", menuItemApi);
 app.use("/api/comboItem", comboItemApi);
+app.use("/api/order", orderAPI);
 
 
 // Khởi động server
