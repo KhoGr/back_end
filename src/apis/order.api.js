@@ -3,7 +3,7 @@ import OrderController from '../controllers/order.controller.js';
 import { jwtAuthentication } from '../middlewares/passport.middleware.js';
 import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
-const router = Router();
+const orderAPI = Router();
 
 // 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
 router.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
@@ -29,4 +29,4 @@ router.patch('/:id/status', jwtAuthentication, verifyAdmin, OrderController.upda
 // ❌ Xoá đơn hàng (admin)
 router.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
 
-export default router;
+export default orderAPI;
