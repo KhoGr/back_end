@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import ComboItem from '../models/combo_item.js';
 import MenuItem from '../models/menu_items.js';
 
@@ -21,6 +22,25 @@ const comboItemService = {
     });
   },
 
+  // 🔍 Tìm kiếm món trong combo theo keyword
+  async searchItemsInCombo(combo_id, keyword) {
+    return await ComboItem.findAll({
+      where: { combo_id },
+      include: [
+        {
+          model: MenuItem,
+          as: 'item',
+          attributes: ['item_id', 'name', 'price', 'image_url'],
+          where: {
+            name: {
+              [Op.iLike]: `%${keyword}%`, // PostgreSQL: iLike là không phân biệt hoa thường
+            },
+          },
+        },
+      ],
+    });
+  },
+
   // Cập nhật số lượng món trong combo
   async updateComboItem(combo_id, item_id, quantity) {
     const comboItem = await ComboItem.findOne({ where: { combo_id, item_id } });
@@ -36,7 +56,7 @@ const comboItemService = {
     return { message: 'Combo item deleted successfully' };
   },
 
-  // Xóa tất cả món khỏi combo (nếu cần)
+  // Xóa tất cả món khỏi combo
   async clearCombo(combo_id) {
     await ComboItem.destroy({ where: { combo_id } });
     return { message: 'All items removed from combo' };
