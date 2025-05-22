@@ -8,6 +8,7 @@ const OrderController = {
       const order = await OrderService.createOrder(data);
       res.status(201).json({ success: true, data: order });
     } catch (error) {
+      console.error('Create Order Error:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   },
@@ -18,6 +19,7 @@ const OrderController = {
       const orders = await OrderService.getAllOrders();
       res.status(200).json({ success: true, data: orders });
     } catch (error) {
+      console.error('Get All Orders Error:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   },
@@ -29,11 +31,12 @@ const OrderController = {
       const order = await OrderService.getOrderById(id);
       res.status(200).json({ success: true, data: order });
     } catch (error) {
+      console.error('Get Order By ID Error:', error);
       res.status(404).json({ success: false, message: error.message });
     }
   },
 
-  // 🔄 Cập nhật đơn hàng (toàn bộ dữ liệu)
+  // 🔄 Cập nhật đơn hàng (bao gồm cả order_items)
   async update(req, res) {
     try {
       const { id } = req.params;
@@ -41,18 +44,25 @@ const OrderController = {
       const updatedOrder = await OrderService.updateOrder(id, updateData);
       res.status(200).json({ success: true, data: updatedOrder });
     } catch (error) {
+      console.error('Update Order Error:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   },
 
-  // 🔁 Chỉ cập nhật status
+  // 🔁 Chỉ cập nhật trạng thái đơn hàng
   async updateStatus(req, res) {
     try {
       const { id } = req.params;
       const { status } = req.body;
+
+      if (!status) {
+        return res.status(400).json({ success: false, message: 'Status is required' });
+      }
+
       const updatedOrder = await OrderService.updateOrder(id, { status });
       res.status(200).json({ success: true, data: updatedOrder });
     } catch (error) {
+      console.error('Update Order Status Error:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   },
@@ -64,17 +74,19 @@ const OrderController = {
       await OrderService.deleteOrder(id);
       res.status(200).json({ success: true, message: 'Order deleted successfully' });
     } catch (error) {
+      console.error('Delete Order Error:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   },
 
-  // 🔍 Tìm kiếm theo keyword (tên khách hoặc ghi chú)
+  // 🔍 Tìm kiếm đơn hàng theo tên khách hoặc ghi chú
   async search(req, res) {
     try {
       const { q } = req.query;
       const result = await OrderService.searchOrders(q || '');
       res.status(200).json({ success: true, data: result });
     } catch (error) {
+      console.error('Search Orders Error:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   },
@@ -86,6 +98,7 @@ const OrderController = {
       const result = await OrderService.getOrdersByStatus(status);
       res.status(200).json({ success: true, data: result });
     } catch (error) {
+      console.error('Filter Orders By Status Error:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   },

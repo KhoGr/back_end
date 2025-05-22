@@ -5,28 +5,29 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const orderAPI = Router();
 
-// 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
-router.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
+// 📋 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
+orderAPI.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
 
-// 🔍 Tìm kiếm đơn hàng theo từ khóa
-router.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
+// 🔍 Tìm kiếm đơn hàng theo từ khóa (name/note)
+orderAPI.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
 
-// 📊 Lọc đơn hàng theo trạng thái
-router.get('/status/:status', jwtAuthentication, verifyAdmin, OrderController.filterByStatus);
+// 📊 Lọc đơn hàng theo trạng thái (VD: pending, completed)
+orderAPI.get('/status/:status', jwtAuthentication, verifyAdmin, OrderController.filterByStatus);
 
-// 🆕 Tạo mới đơn hàng (khách hàng hoặc nhân viên)
-router.post('/', jwtAuthentication, OrderController.create);
+// 🆕 Tạo mới đơn hàng (khách hàng hoặc nhân viên, không cần admin)
+orderAPI.post('/', jwtAuthentication, OrderController.create);
 
-// 📦 Lấy chi tiết đơn hàng theo ID (khách hàng có thể xem đơn của mình)
-router.get('/:id', jwtAuthentication, OrderController.getById);
+// 📦 Lấy chi tiết đơn hàng theo ID
+// 👉 Nếu cần giới hạn quyền (vd: chỉ khách được xem đơn của họ), bạn cần kiểm tra thêm trong controller
+orderAPI.get('/:id', jwtAuthentication, OrderController.getById);
 
-// 🔄 Cập nhật đơn hàng (toàn bộ)
-router.put('/:id', jwtAuthentication, verifyAdmin, OrderController.update);
+// 🔄 Cập nhật toàn bộ đơn hàng (chỉ admin)
+orderAPI.put('/:id', jwtAuthentication, verifyAdmin, OrderController.update);
 
-// 🔁 Chỉ cập nhật trạng thái
-router.patch('/:id/status', jwtAuthentication, verifyAdmin, OrderController.updateStatus);
+// 🔁 Cập nhật chỉ trạng thái đơn hàng
+orderAPI.patch('/:id/status', jwtAuthentication, verifyAdmin, OrderController.updateStatus);
 
-// ❌ Xoá đơn hàng (admin)
-router.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
+// ❌ Xoá đơn hàng
+orderAPI.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
 
 export default orderAPI;

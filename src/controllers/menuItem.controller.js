@@ -1,5 +1,6 @@
 // controller/menuItem.controller.js
 import menuItemService from '../service/menuItem.service.js';
+import { uploadImage } from "../service/common.service.js";
 
 class MenuItemController {
   async create(req, res) {
@@ -15,6 +16,7 @@ class MenuItemController {
   async getAll(req, res) {
     try {
       const items = await menuItemService.getAllMenuItems();
+      console.log("menu item lấy được",items)
       res.status(200).json(items);
     } catch (error) {
       res.status(500).json({ message: error.message || 'Failed to fetch menu items' });
@@ -70,6 +72,28 @@ class MenuItemController {
       res.status(500).json({ message: error.message || 'Failed to search menu items' });
     }
   }
+  async changeMenuItemImage(req, res) {
+    try {
+      const { id } = req.params;
+      const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: "Vui lòng chọn ảnh" });
+    }
+
+    const imageUrl = await uploadImage(file.path, "menu_items"); // 👈 Folder trên Cloudinary
+    const updatedItem = await menuItemService.updateMenuItemImage(id, imageUrl);
+
+    return res.json({
+      message: "Cập nhật ảnh món ăn thành công!",
+      image_url: updatedItem.image_url,
+    });
+  } catch (error) {
+    console.error("Lỗi khi cập nhật ảnh món ăn:", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 }
 
 export default new MenuItemController();

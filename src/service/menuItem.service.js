@@ -3,9 +3,12 @@ import { Op } from 'sequelize';
 import MenuItem from '../models/menu_items.js';
 import Category from '../models/category.js';
 
+// ✅ Thiết lập quan hệ ngay tại đây
+MenuItem.associate?.({ Category });
+Category.associate?.({ MenuItem }); // Nếu có quan hệ ngược, optional
+
 const menuItemService = {
   async createMenuItem(data) {
-    // ✅ Validate category_id tồn tại
     const category = await Category.findByPk(data.category_id);
     if (!category) {
       throw new Error('Invalid category_id');
@@ -20,7 +23,7 @@ const menuItemService = {
         model: Category,
         as: 'category',
         attributes: ['id', 'name'],
-      }
+      },
     });
   },
 
@@ -30,7 +33,7 @@ const menuItemService = {
         model: Category,
         as: 'category',
         attributes: ['id', 'name'],
-      }
+      },
     });
   },
 
@@ -38,7 +41,6 @@ const menuItemService = {
     const item = await MenuItem.findByPk(id);
     if (!item) return null;
 
-    // ✅ Nếu có cập nhật category_id thì validate
     if (data.category_id) {
       const category = await Category.findByPk(data.category_id);
       if (!category) {
@@ -62,8 +64,8 @@ const menuItemService = {
 
     if (keyword) {
       whereClause[Op.or] = [
-        { name: { [Op.iLike]: `%${keyword}%` } },
-        { description: { [Op.iLike]: `%${keyword}%` } },
+        { name: { [Op.like]: `%${keyword}%` } },
+        { description: { [Op.like]: `%${keyword}%` } },
       ];
     }
 
@@ -77,9 +79,25 @@ const menuItemService = {
         model: Category,
         as: 'category',
         attributes: ['id', 'name'],
-      }
+      },
     });
+  },
+  async updateMenuItemImage(item_id, imageUrl) {
+    try {
+      const item = await MenuItem.findByPk(item_id);
+      if (!item) {
+        throw new Error("Không tìm thấy món ăn.");
+      }
+
+    item.image_url = imageUrl;
+    await item.save();
+
+    return item;
+  } catch (error) {
+    console.error("Lỗi khi cập nhật ảnh món ăn:", error);
+    throw new Error("Không thể cập nhật ảnh món ăn.");
   }
+}
 };
 
 export default menuItemService;
