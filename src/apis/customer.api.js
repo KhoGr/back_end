@@ -5,6 +5,7 @@ import {
   updateCustomerController,
   deleteCustomerController,
   getAllCustomersController,
+  searchCustomersByNameController
 } from "../controllers/customer.controller.js";
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
 import { verifyAdmin } from "../middlewares/auth.middleware.js";
@@ -20,5 +21,6 @@ customerApi.get("/getCustomer/:userId", adminOnly, getCustomerController);      
 customerApi.post("/createCustomer", adminOnly, createCustomerController);              // POST /api/customer
 customerApi.put("/updateCustomer/:userId", adminOnly, updateCustomerController);        // PUT /api/customer/:userId
 customerApi.delete("/deleteCustomer/:userId", adminOnly, deleteCustomerController);     // DELETE /api/customer/:userId
+customerApi.get("/search",adminOnly, searchCustomersByNameController); // GET /api/customer/search
 
 export default customerApi;

@@ -30,6 +30,7 @@ import Account from "../models/account.js";
 import { uploadImage } from "../service/common.service.js";
 import jwt from "jsonwebtoken";
 import { createCustomer } from "../service/customer.service.js";
+import { createStaff } from "../service/staff.service.js";
 
 
 export const registerLocal = async (req, res) => {
