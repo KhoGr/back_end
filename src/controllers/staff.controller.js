@@ -1,94 +1,93 @@
-import {
-    createStaff,
-    getStaffByUserId,
-    updateStaffByUserId,
-    deleteStaffByUserId,
-  } from '../service/staff.service.js';
-  
-  /**
-   * Tạo mới nhân viên từ user_id và dữ liệu bổ sung
-   */
-  export const handleCreateStaff = async (req, res) => {
-    try {
-      const { user_id, position, salary, working_type, joined_date, note } = req.body;
-  
-      if (!user_id) {
-        return res.status(400).json({ message: 'Thiếu user_id' });
-      }
-  
-      const newStaff = await createStaff(user_id, {
-        position,
-        salary,
-        working_type,
-        joined_date,
-        note,
-      });
-  
-      res.status(201).json({
-        message: 'Tạo nhân viên thành công',
-        staff: newStaff,
-      });
-    } catch (error) {
-      console.error('❌ Lỗi tạo staff:', error);
-      res.status(500).json({ message: 'Tạo nhân viên thất bại' });
+import * as staffService from "../service/staff.service.js";
+
+// Tạo Staff mới
+export const createStaffController = async (req, res) => {
+  try {
+    const { userId, position, salary, working_type, joined_date, note } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Thiếu userId." });
     }
-  };
-  
-  /**
-   * Lấy thông tin nhân viên theo user_id
-   */
-  export const handleGetStaff = async (req, res) => {
-    try {
-      const { user_id } = req.params;
-  
-      const staff = await getStaffByUserId(user_id);
-      if (!staff) {
-        return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
-      }
-  
-      res.status(200).json({ staff });
-    } catch (error) {
-      console.error('❌ Lỗi lấy staff:', error);
-      res.status(500).json({ message: 'Không thể lấy thông tin nhân viên' });
+
+    const staff = await staffService.createStaff(userId, {
+      position,
+      salary,
+      working_type,
+      joined_date,
+      note,
+    });
+
+    res.status(201).json(staff);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Lấy thông tin 1 Staff theo userId
+export const getStaffController = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    const staff = await staffService.getStaffByUserId(userId);
+    if (!staff) {
+      return res.status(404).json({ message: "Không tìm thấy nhân viên." });
     }
-  };
-  
-  /**
-   * Cập nhật thông tin nhân viên
-   */
-  export const handleUpdateStaff = async (req, res) => {
-    try {
-      const { user_id } = req.params;
-      const updates = req.body;
-  
-      const success = await updateStaffByUserId(user_id, updates);
-      if (!success) {
-        return res.status(404).json({ message: 'Không tìm thấy nhân viên để cập nhật' });
-      }
-  
-      res.status(200).json({ message: 'Cập nhật thông tin nhân viên thành công' });
-    } catch (error) {
-      console.error('❌ Lỗi cập nhật staff:', error);
-      res.status(500).json({ message: 'Cập nhật nhân viên thất bại' });
+
+    res.json(staff);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Cập nhật Staff
+export const updateStaffController = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const updateData = req.body;
+
+    const updatedStaff = await staffService.updateStaff(userId, updateData);
+    res.json(updatedStaff);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+// Xóa Staff theo userId
+export const deleteStaffController = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    await staffService.deleteStaff(userId);
+    res.json({ message: "Nhân viên đã được xóa." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Lấy danh sách tất cả Staff
+export const getAllStaffsController = async (_req, res) => {
+  try {
+    console.log("📥 Nhận yêu cầu lấy danh sách tất cả nhân viên...");
+    const staffs = await staffService.getAllStaffs();
+    console.log("✅ Lấy danh sách staff thành công. Số lượng:", staffs.length);
+    res.json(staffs);
+  } catch (error) {
+    console.error("❌ Lỗi khi lấy tất cả staffs:", error);
+    res.status(500).json({ error: error.message || "Lỗi server khi lấy danh sách nhân viên." });
+  }
+};
+
+// Tìm kiếm Staff theo tên
+export const searchStaffsByNameController = async (req, res) => {
+  try {
+    const searchTerm = req.query.name;
+
+    if (!searchTerm || searchTerm.trim() === "") {
+      return res.status(400).json({ error: "Vui lòng cung cấp từ khóa tìm kiếm." });
     }
-  };
-  
-  /**
-   * Xóa nhân viên theo user_id
-   */
-  export const handleDeleteStaff = async (req, res) => {
-    try {
-      const { user_id } = req.params;
-  
-      const success = await deleteStaffByUserId(user_id);
-      if (!success) {
-        return res.status(404).json({ message: 'Không tìm thấy nhân viên để xóa' });
-      }
-  
-      res.status(200).json({ message: 'Xóa nhân viên thành công' });
-    } catch (error) {
-      console.error('❌ Lỗi xóa staff:', error);
-      res.status(500).json({ message: 'Xóa nhân viên thất bại' });
-    }
-  };
-  
+
+    const staffs = await staffService.searchStaffsByName(searchTerm);
+    res.json(staffs);
+  } catch (error) {
+    res.status(500).json({ error: error.message || "Lỗi khi tìm kiếm nhân viên." });
+  }
+};

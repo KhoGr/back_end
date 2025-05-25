@@ -3,9 +3,14 @@ import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.js'; // Đảm bảo đường dẫn chính xác đến file cấu hình Sequelize
 
 class Account extends Model {
-  static associate(models) {
-    // Define associations here if needed
-  }
+static associate(models) {
+  Account.hasOne(models.User, {
+    foreignKey: 'account_id',
+    as: 'user',
+    onDelete: 'CASCADE',
+  });
+}
+
 }
 
 Account.init(

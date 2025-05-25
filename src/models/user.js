@@ -2,13 +2,19 @@ import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js"; 
 
 class User extends Model {
-  static associate(models) {
-    User.belongsTo(models.Account, {
-      foreignKey: "account_id",
-      as: "account",
-      onDelete: "CASCADE",
-    });
-  }
+static associate(models) {
+  User.belongsTo(models.Account, {
+    foreignKey: 'account_id',
+    as: 'account',
+    onDelete: 'CASCADE',
+  });
+
+  User.hasOne(models.Staff, {
+    foreignKey: 'user_id',
+    as: 'staff',
+    onDelete: 'CASCADE',
+  });
+}
 }
 
 User.init(
