@@ -8,24 +8,23 @@ const orderAPI = Router();
 // 📋 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
 orderAPI.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
 
-// 🔍 Tìm kiếm đơn hàng theo từ khóa (name/note)
+// 🔍 Tìm kiếm/lọc đơn hàng theo từ khoá/trạng thái/ngày
 orderAPI.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
 
-// 📊 Lọc đơn hàng theo trạng thái (VD: pending, completed)
-orderAPI.get('/status/:status', jwtAuthentication, verifyAdmin, OrderController.filterByStatus);
-
-// 🆕 Tạo mới đơn hàng (khách hàng hoặc nhân viên, không cần admin)
+// 🆕 Tạo mới đơn hàng (nhân viên hoặc khách)
 orderAPI.post('/', jwtAuthentication, OrderController.create);
 
-// 📦 Lấy chi tiết đơn hàng theo ID
-// 👉 Nếu cần giới hạn quyền (vd: chỉ khách được xem đơn của họ), bạn cần kiểm tra thêm trong controller
+// 📦 Lấy chi tiết đơn hàng
 orderAPI.get('/:id', jwtAuthentication, OrderController.getById);
 
-// 🔄 Cập nhật toàn bộ đơn hàng (chỉ admin)
-orderAPI.put('/:id', jwtAuthentication, verifyAdmin, OrderController.update);
-
-// 🔁 Cập nhật chỉ trạng thái đơn hàng
+// 🔁 Cập nhật trạng thái đơn hàng
 orderAPI.patch('/:id/status', jwtAuthentication, verifyAdmin, OrderController.updateStatus);
+
+// 💰 Đánh dấu đơn hàng đã thanh toán
+orderAPI.patch('/:id/pay', jwtAuthentication, verifyAdmin, OrderController.markPaid);
+
+// 🔄 Tính lại tổng tiền đơn hàng
+orderAPI.patch('/:id/recalculate', jwtAuthentication, verifyAdmin, OrderController.recalculateTotal);
 
 // ❌ Xoá đơn hàng
 orderAPI.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);

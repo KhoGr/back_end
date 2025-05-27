@@ -6,7 +6,7 @@ class Account extends Model {
 static associate(models) {
   Account.hasOne(models.User, {
     foreignKey: 'account_id',
-    as: 'user',
+    as: 'userProfile',
     onDelete: 'CASCADE',
   });
 }

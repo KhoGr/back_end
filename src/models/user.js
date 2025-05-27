@@ -11,7 +11,7 @@ static associate(models) {
 
   User.hasOne(models.Staff, {
     foreignKey: 'user_id',
-    as: 'staff',
+    as: 'staffProfile',
     onDelete: 'CASCADE',
   });
 }

@@ -5,13 +5,13 @@ class ComboItem extends Model {
   static associate(models) {
     ComboItem.belongsTo(models.MenuItem, {
       foreignKey: "combo_id",
-      as: "combo",
+      as: "combos",
       onDelete: "CASCADE",
     });
 
     ComboItem.belongsTo(models.MenuItem, {
       foreignKey: "item_id",
-      as: "item",
+      as: "items",
       onDelete: "CASCADE",
     });
   }

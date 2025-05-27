@@ -1,19 +1,20 @@
-// services/menuItemComment.service.js
-import db from '../models';
+import models from '../models/index.js';
+
+const { MenuItemComment, Customer, User } = models;
 
 const createComment = async (data) => {
-  return await db.MenuItemComment.create(data);
+  return await MenuItemComment.create(data);
 };
 
 const getCommentsByItemId = async (item_id) => {
-  return await db.MenuItemComment.findAll({
+  return await MenuItemComment.findAll({
     where: { item_id },
     include: [
       {
-        model: db.Customer,
+        model: Customer,
         as: 'customer',
         include: {
-          model: db.User,
+          model: User,
           as: 'user',
           attributes: ['name', 'avatar'],
         },
@@ -24,13 +25,13 @@ const getCommentsByItemId = async (item_id) => {
 };
 
 const updateComment = async (comment_id, data) => {
-  const comment = await db.MenuItemComment.findByPk(comment_id);
+  const comment = await MenuItemComment.findByPk(comment_id);
   if (!comment) throw new Error('Comment not found');
   return await comment.update(data);
 };
 
 const deleteComment = async (comment_id) => {
-  const comment = await db.MenuItemComment.findByPk(comment_id);
+  const comment = await MenuItemComment.findByPk(comment_id);
   if (!comment) throw new Error('Comment not found');
   await comment.destroy();
   return true;

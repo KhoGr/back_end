@@ -1,45 +1,48 @@
-import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js";
-class Table extends Model {}
+import { Model, DataTypes } from 'sequelize';
+import { sequelize } from '../config/database.js';
 
-Table.init({
-  table_id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-    allowNull: false,
-  },
-  table_number: {
-    type: DataTypes.INTEGER,
-    unique: true,
-  },
-  capacity: {
-    type: DataTypes.INTEGER,
-    defaultValue: 4,
-  },
-  status: {
-    type: DataTypes.STRING(20),
-    defaultValue: "avaliable",
-    validate: {
-      isIn: [["available", "occupied", "reserved"]],
-    },
-  },
-      created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-      updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
+class Table extends Model {
+  static associate(models) {
+    Table.hasMany(models.Order, {
+      foreignKey: 'table_id',
+      as: 'orders',
+      onDelete: 'SET NULL',
+    });
+  }
+}
 
-},
-{
+Table.init(
+  {
+    table_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    table_number: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    floor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    seat_count: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.ENUM('available', 'occupied', 'reserved', 'unavailable'),
+      defaultValue: 'available',
+    },
+  },
+  {
     sequelize,
     modelName: 'Table',
-    tableName: 'Tables',
-    timestamps: false, // vì đã có created_at/pai̇d_at riêng
-    underscored: true, 
-}
+    tableName: 'tables',
+    timestamps: false,
+    underscored: true,
+  }
 );
+
 export default Table;

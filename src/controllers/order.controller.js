@@ -1,11 +1,20 @@
-import OrderService from '../service/order.service.js';
+import {
+  createOrder,
+  getAllOrders,
+  getOrderById,
+  updateOrderStatus,
+  deleteOrder,
+  markAsPaid,
+  searchOrders,
+  calculateTotalAmount
+} from '../service/order.service.js';
 
 const OrderController = {
   // 🆕 Tạo đơn hàng
   async create(req, res) {
     try {
       const data = req.body;
-      const order = await OrderService.createOrder(data);
+      const order = await createOrder(data);
       res.status(201).json({ success: true, data: order });
     } catch (error) {
       console.error('Create Order Error:', error);
@@ -16,7 +25,7 @@ const OrderController = {
   // 📋 Lấy tất cả đơn hàng
   async getAll(req, res) {
     try {
-      const orders = await OrderService.getAllOrders();
+      const orders = await getAllOrders();
       res.status(200).json({ success: true, data: orders });
     } catch (error) {
       console.error('Get All Orders Error:', error);
@@ -28,7 +37,7 @@ const OrderController = {
   async getById(req, res) {
     try {
       const { id } = req.params;
-      const order = await OrderService.getOrderById(id);
+      const order = await getOrderById(id);
       res.status(200).json({ success: true, data: order });
     } catch (error) {
       console.error('Get Order By ID Error:', error);
@@ -36,20 +45,7 @@ const OrderController = {
     }
   },
 
-  // 🔄 Cập nhật đơn hàng (bao gồm cả order_items)
-  async update(req, res) {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-      const updatedOrder = await OrderService.updateOrder(id, updateData);
-      res.status(200).json({ success: true, data: updatedOrder });
-    } catch (error) {
-      console.error('Update Order Error:', error);
-      res.status(400).json({ success: false, message: error.message });
-    }
-  },
-
-  // 🔁 Chỉ cập nhật trạng thái đơn hàng
+  // 🔁 Cập nhật trạng thái đơn hàng
   async updateStatus(req, res) {
     try {
       const { id } = req.params;
@@ -59,7 +55,7 @@ const OrderController = {
         return res.status(400).json({ success: false, message: 'Status is required' });
       }
 
-      const updatedOrder = await OrderService.updateOrder(id, { status });
+      const updatedOrder = await updateOrderStatus(id, status);
       res.status(200).json({ success: true, data: updatedOrder });
     } catch (error) {
       console.error('Update Order Status Error:', error);
@@ -71,7 +67,7 @@ const OrderController = {
   async remove(req, res) {
     try {
       const { id } = req.params;
-      await OrderService.deleteOrder(id);
+      await deleteOrder(id);
       res.status(200).json({ success: true, message: 'Order deleted successfully' });
     } catch (error) {
       console.error('Delete Order Error:', error);
@@ -79,11 +75,11 @@ const OrderController = {
     }
   },
 
-  // 🔍 Tìm kiếm đơn hàng theo tên khách hoặc ghi chú
+  // 🔍 Tìm kiếm/lọc đơn hàng
   async search(req, res) {
     try {
-      const { q } = req.query;
-      const result = await OrderService.searchOrders(q || '');
+      const { keyword, status, date_from, date_to } = req.query;
+      const result = await searchOrders({ keyword, status, date_from, date_to });
       res.status(200).json({ success: true, data: result });
     } catch (error) {
       console.error('Search Orders Error:', error);
@@ -91,17 +87,35 @@ const OrderController = {
     }
   },
 
-  // 📊 Lọc đơn hàng theo trạng thái
-  async filterByStatus(req, res) {
+  // 💰 Đánh dấu đã thanh toán
+  async markPaid(req, res) {
     try {
-      const { status } = req.params;
-      const result = await OrderService.getOrdersByStatus(status);
-      res.status(200).json({ success: true, data: result });
+      const { id } = req.params;
+      const { method } = req.body;
+
+      if (!method) {
+        return res.status(400).json({ success: false, message: 'Payment method is required' });
+      }
+
+      const order = await markAsPaid(id, method);
+      res.status(200).json({ success: true, data: order });
     } catch (error) {
-      console.error('Filter Orders By Status Error:', error);
+      console.error('Mark Order Paid Error:', error);
       res.status(400).json({ success: false, message: error.message });
     }
   },
+
+  // 🔄 Tính lại tổng tiền (nếu sửa order_items)
+  async recalculateTotal(req, res) {
+    try {
+      const { id } = req.params;
+      const total = await calculateTotalAmount(id);
+      res.status(200).json({ success: true, total });
+    } catch (error) {
+      console.error('Recalculate Total Error:', error);
+      res.status(400).json({ success: false, message: error.message });
+    }
+  }
 };
 
 export default OrderController;

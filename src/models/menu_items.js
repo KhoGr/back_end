@@ -1,14 +1,8 @@
-import { Model, DataTypes } from 'sequelize';
-import { sequelize } from '../config/database.js';
+import { Model, DataTypes } from "sequelize";
+import { sequelize } from "../config/database.js";
 
 class MenuItem extends Model {
-  static associate(models) {
-    MenuItem.belongsTo(models.Category, {
-      foreignKey: 'category_id',
-      as: 'category',
-      onDelete: 'CASCADE',
-    });
-  }
+
 }
 
 MenuItem.init(
@@ -22,10 +16,10 @@ MenuItem.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'categories',
-        key: 'id',
+        model: "categories",
+        key: "id",
       },
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     name: {
       type: DataTypes.STRING(100),
@@ -40,7 +34,7 @@ MenuItem.init(
     },
     discount_percent: {
       type: DataTypes.DECIMAL(5, 2),
-      defaultValue: 0.00,
+      defaultValue: 0.0,
     },
     is_available: {
       type: DataTypes.BOOLEAN,
@@ -67,8 +61,8 @@ MenuItem.init(
   },
   {
     sequelize,
-    modelName: 'MenuItem',
-    tableName: 'menu_items',
+    modelName: "MenuItem",
+    tableName: "menu_items",
     timestamps: true,
     underscored: true,
   }

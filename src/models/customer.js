@@ -1,11 +1,17 @@
-import { Model, DataTypes } from 'sequelize';
-import { sequelize } from '../config/database.js';
+import { Model, DataTypes } from "sequelize";
+import { sequelize } from "../config/database.js";
 
 class Customer extends Model {
   static associate(models) {
     Customer.belongsTo(models.User, {
-      foreignKey: 'user_id',
-      as: 'user',
+      foreignKey: "user_id",
+      as: "user_info", 
+      onDelete: "CASCADE",
+    });
+
+    Customer.hasMany(models.MenuItemComment, {
+      foreignKey: 'customer_id',
+      as: 'customer_comments', // đổi alias từ 'comments'
       onDelete: 'CASCADE',
     });
   }
@@ -22,10 +28,10 @@ Customer.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users',
-        key: 'user_id',
+        model: "Users",
+        key: "user_id",
       },
-      onDelete: 'CASCADE',
+      onDelete: "CASCADE",
     },
     loyalty_point: {
       type: DataTypes.INTEGER,
@@ -33,11 +39,11 @@ Customer.init(
     },
     total_spent: {
       type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 0.00,
+      defaultValue: 0.0,
     },
     membership_level: {
-      type: DataTypes.ENUM('bronze', 'silver', 'gold', 'platinum'),
-      defaultValue: 'bronze',
+      type: DataTypes.ENUM("bronze", "silver", "gold", "platinum"),
+      defaultValue: "bronze",
     },
     note: {
       type: DataTypes.TEXT,
@@ -54,8 +60,8 @@ Customer.init(
   },
   {
     sequelize,
-    tableName: 'Customers',
-    modelName: 'Customer',
+    tableName: "Customers",
+    modelName: "Customer",
     timestamps: true,
     underscored: true,
   }

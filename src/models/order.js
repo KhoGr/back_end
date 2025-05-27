@@ -15,6 +15,12 @@ class Order extends Model {
       onDelete: 'SET NULL',
     });
 
+    Order.belongsTo(models.Table, {
+      foreignKey: 'table_id',
+      as: 'table',
+      onDelete: 'SET NULL',
+    });
+
     Order.hasMany(models.OrderItem, {
       foreignKey: 'order_id',
       as: 'order_items',
@@ -32,19 +38,23 @@ Order.init(
     },
     customer_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'customers',
-        key: 'customer_id',
-      },
+      allowNull: true,
     },
     staff_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'staffs',
-        key: 'staff_id',
-      },
+      allowNull: true,
+    },
+    table_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    guest_count: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    order_type: {
+      type: DataTypes.ENUM('dine-in', 'take-away', 'delivery'),
+      defaultValue: 'dine-in',
     },
     order_date: {
       type: DataTypes.DATE,
@@ -55,7 +65,14 @@ Order.init(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM('pending', 'preparing', 'served', 'completed', 'cancelled', 'refunded'),
+      type: DataTypes.ENUM(
+        'pending',
+        'preparing',
+        'served',
+        'completed',
+        'cancelled',
+        'refunded'
+      ),
       defaultValue: 'pending',
     },
     payment_method: {
