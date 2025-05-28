@@ -1,23 +1,35 @@
 import express from "express";
+import http from "http"; // 👈 Cần thêm
+import { Server } from "socket.io"; // 👈 Cần thêm
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-/////////////////////////
-import accountApi from "./src/apis/account.api.js"; // Import route của account
+import session from "express-session";
+import passport from "./src/middlewares/passport.js";
+
+import accountApi from "./src/apis/account.api.js";
 import categoryApi from "./src/apis/category.api.js";
 import customerApi from "./src/apis/customer.api.js";
 import staffApi from "./src/apis/staff.api.js";
-import menuItemApi from "./src/apis/menuItem.api.js"
-import comboItemApi from "./src/apis/comboItem.api.js"
+import menuItemApi from "./src/apis/menuItem.api.js";
+import comboItemApi from "./src/apis/comboItem.api.js";
 import orderAPI from "./src/apis/order.api.js";
-//////////////////////////////////
+import tableApi from "./src/apis/table.api.js"; // 👈 Route mới
 
-import { sequelize } from "./src/config/database.js"; // Import kết nối Sequelize
-import session from "express-session"; // Import express-session
-import passport from "./src/middlewares/passport.js";
+import { sequelize } from "./src/config/database.js";
+
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app); // 👈 Dùng http để tạo server
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
 // Middleware
 app.use(express.json());
@@ -26,29 +38,33 @@ app.use(cookieParser());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "mysecretkey", // Đặt secret cho session, thêm vào .env nếu có
+    secret: process.env.SESSION_SECRET || "mysecretkey",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // Nếu dùng HTTPS, đặt secure: true
+    cookie: { secure: false },
   })
 );
 
-// Khởi tạo Passport và session của Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Kiểm tra kết nối database
+// Gắn socket.io vào req để controller dùng được
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+// Database
 const checkDatabaseConnection = async () => {
   try {
     await sequelize.authenticate();
     console.log("✅ Đã kết nối database thành công!");
   } catch (error) {
     console.error("❌ Lỗi kết nối database:", error);
-    process.exit(1); // Dừng server nếu không kết nối được database
+    process.exit(1);
   }
 };
 
-// Gọi hàm kiểm tra kết nối
 checkDatabaseConnection();
 
 // Routes
@@ -56,14 +72,22 @@ app.use("/api/account", accountApi);
 app.use("/api/customer", customerApi);
 app.use("/api/category", categoryApi);
 app.use("/api/staff", staffApi);
-app.use("/api/category", categoryApi);
 app.use("/api/menuitem", menuItemApi);
 app.use("/api/comboItem", comboItemApi);
 app.use("/api/order", orderAPI);
+app.use("/api/table", tableApi); // 👈 Đường dẫn API mới
 
+// Sự kiện Socket.IO (khi client kết nối)
+io.on("connection", (socket) => {
+  console.log("🟢 Admin hoặc client đã kết nối:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Client ngắt kết nối:", socket.id);
+  });
+});
 
 // Khởi động server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server đang chạy tại http://localhost:${PORT}`);
+server.listen(PORT, () => {
+  console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
 });

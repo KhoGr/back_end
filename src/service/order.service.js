@@ -2,19 +2,19 @@ import { Op } from 'sequelize';
 import Order from '../models/order.js';
 import OrderItem from '../models/order_item.js';
 import Customer from '../models/customer.js';
-import Staff from '../models/staff.js';
 import Table from '../models/table.js';
+import User from '../models/user.js'; 
 
 export const getAllOrders = async () => {
   return await Order.findAll({
-    include: ['customer', 'staff', 'table', 'order_items'],
+    include: ['customer', 'table', 'order_items'],
     order: [['order_date', 'DESC']],
   });
 };
 
 export const getOrderById = async (id) => {
   const order = await Order.findByPk(id, {
-    include: ['customer', 'staff', 'table', 'order_items'],
+    include: ['customer', 'table', 'order_items'],
   });
   if (!order) throw new Error('Order not found');
   return order;
@@ -78,6 +78,7 @@ export const markAsPaid = async (id, method) => {
   await order.save();
   return order;
 };
+
 export const searchOrders = async (query) => {
   const { keyword, status, date_from, date_to, user_id } = query;
 
@@ -95,30 +96,30 @@ export const searchOrders = async (query) => {
         model: Customer,
         as: 'customer',
         required: true,
-        include: user_id
-          ? [
-              {
-                model: User,
-                as: 'user',
-                where: { id: user_id },
-              },
-            ]
-          : [],
-        where: keyword
-          ? {
-              name: {
-                [Op.iLike]: `%${keyword}%`,
-              },
-            }
-          : undefined,
+        include: [
+          {
+            model: User,
+            as: 'user',
+            required: !!(keyword || user_id),
+            where: {
+              ...(user_id && { id: user_id }),
+              ...(keyword && {
+                name: {
+                  [Op.like]: `%${keyword}%`,
+                },
+              }),
+            },
+          },
+        ],
       },
-      { model: Staff, as: 'staff' },
-      { model: Table, as: 'table' },
+      {
+        model: Table,
+        as: 'table',
+      },
     ],
     order: [['order_date', 'DESC']],
   });
 };
-
 
 export const calculateTotalAmount = async (orderId) => {
   const items = await OrderItem.findAll({ where: { order_id: orderId } });
@@ -131,3 +132,4 @@ export const calculateTotalAmount = async (orderId) => {
 
   return total;
 };
+

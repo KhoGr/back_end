@@ -1,49 +1,63 @@
-// controllers/menuItemComment.controller.js
-import menuItemCommentService from '../services/menuItemComment.service.js';
+import menuItemCommentHandler from '../service/menuItemComment.service';
 
-const createComment = async (req, res) => {
+const createMenuItemComment = async (req, res) => {
   try {
     const data = req.body;
-    const comment = await menuItemCommentService.createComment(data);
+    const comment = await menuItemCommentHandler.createComment(data);
     return res.status(201).json({ message: 'Comment created', comment });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
-const getCommentsByItemId = async (req, res) => {
+const getMenuItemComments = async (req, res) => {
   try {
     const { item_id } = req.params;
-    const comments = await menuItemCommentService.getCommentsByItemId(item_id);
-    return res.json(comments);
+    const comments = await menuItemCommentHandler.getCommentsByItemId(item_id);
+    return res.status(200).json(comments);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
-const updateComment = async (req, res) => {
+const updateMenuItemComment = async (req, res) => {
   try {
     const { comment_id } = req.params;
-    const updated = await menuItemCommentService.updateComment(comment_id, req.body);
-    return res.json({ message: 'Comment updated', updated });
+    const updated = await menuItemCommentHandler.updateComment(comment_id, req.body);
+    return res.status(200).json({ message: 'Comment updated', updated });
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 };
 
-const deleteComment = async (req, res) => {
+const deleteMenuItemComment = async (req, res) => {
   try {
     const { comment_id } = req.params;
-    await menuItemCommentService.deleteComment(comment_id);
-    return res.json({ message: 'Comment deleted' });
+    await menuItemCommentHandler.deleteComment(comment_id);
+    return res.status(200).json({ message: 'Comment deleted' });
+  } catch (error) {
+    return res.status(404).json({ error: error.message });
+  }
+};
+
+const searchMenuItemComments = async (req, res) => {
+  try {
+    const { rating, customerName, itemName } = req.query;
+    const comments = await menuItemCommentHandler.searchComments({
+      rating: rating ? Number(rating) : undefined,
+      customerName,
+      itemName,
+    });
+    return res.status(200).json(comments);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
 };
 
 export default {
-  createComment,
-  getCommentsByItemId,
-  updateComment,
-  deleteComment,
+  createMenuItemComment,
+  getMenuItemComments,
+  updateMenuItemComment,
+  deleteMenuItemComment,
+  searchMenuItemComments,
 };

@@ -10,7 +10,7 @@ class MenuItem extends Model {
     });
 
     MenuItem.hasMany(models.MenuItemComment, {
-      foreignKey: "item_id",
+      foreignKey: "item_id", // <- KHÔNG cần khai báo item_id trong model này
       as: "item_comments",
       onDelete: "CASCADE",
     });
@@ -19,7 +19,7 @@ class MenuItem extends Model {
 
 MenuItem.init(
   {
-    item_id: {
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
