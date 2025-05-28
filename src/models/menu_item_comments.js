@@ -5,12 +5,12 @@ class MenuItemComment extends Model {
   static associate(models) {
     MenuItemComment.belongsTo(models.MenuItem, {
       foreignKey: 'item_id',
-      as: 'commented_item', // đổi alias từ 'menu_item'
+      as: 'commented_item',
       onDelete: 'CASCADE',
     });
     MenuItemComment.belongsTo(models.Customer, {
       foreignKey: 'customer_id',
-      as: 'commenter', // đổi alias từ 'customer'
+      as: 'commenter', 
       onDelete: 'CASCADE',
     });
   }

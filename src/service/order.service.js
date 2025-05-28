@@ -78,9 +78,8 @@ export const markAsPaid = async (id, method) => {
   await order.save();
   return order;
 };
-
 export const searchOrders = async (query) => {
-  const { keyword, status, date_from, date_to } = query;
+  const { keyword, status, date_from, date_to, user_id } = query;
 
   return await Order.findAll({
     where: {
@@ -95,13 +94,23 @@ export const searchOrders = async (query) => {
       {
         model: Customer,
         as: 'customer',
+        required: true,
+        include: user_id
+          ? [
+              {
+                model: User,
+                as: 'user',
+                where: { id: user_id },
+              },
+            ]
+          : [],
         where: keyword
           ? {
               name: {
                 [Op.iLike]: `%${keyword}%`,
               },
             }
-          : {},
+          : undefined,
       },
       { model: Staff, as: 'staff' },
       { model: Table, as: 'table' },
@@ -109,6 +118,7 @@ export const searchOrders = async (query) => {
     order: [['order_date', 'DESC']],
   });
 };
+
 
 export const calculateTotalAmount = async (orderId) => {
   const items = await OrderItem.findAll({ where: { order_id: orderId } });

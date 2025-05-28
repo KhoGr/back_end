@@ -2,7 +2,19 @@ import { Model, DataTypes } from "sequelize";
 import { sequelize } from "../config/database.js";
 
 class MenuItem extends Model {
+  static associate(models) {
+    MenuItem.belongsTo(models.Category, {
+      foreignKey: "category_id",
+      as: "category",
+      onDelete: "CASCADE",
+    });
 
+    MenuItem.hasMany(models.MenuItemComment, {
+      foreignKey: "item_id",
+      as: "item_comments",
+      onDelete: "CASCADE",
+    });
+  }
 }
 
 MenuItem.init(

@@ -1,18 +1,18 @@
 import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js";
+import { sequelize } from "../config/database.js"; // hoặc nơi bạn định nghĩa sequelize
 
 class Customer extends Model {
   static associate(models) {
     Customer.belongsTo(models.User, {
       foreignKey: "user_id",
-      as: "user_info", 
+      as: "user_info",
       onDelete: "CASCADE",
     });
 
     Customer.hasMany(models.MenuItemComment, {
-      foreignKey: 'customer_id',
-      as: 'customer_comments', // đổi alias từ 'comments'
-      onDelete: 'CASCADE',
+      foreignKey: "customer_id",
+      as: "customer_comments",
+      onDelete: "CASCADE",
     });
   }
 }
@@ -28,7 +28,7 @@ Customer.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "Users",
+        model: "Users", // tên bảng trong DB, không phải model
         key: "user_id",
       },
       onDelete: "CASCADE",
@@ -60,11 +60,15 @@ Customer.init(
   },
   {
     sequelize,
-    tableName: "Customers",
     modelName: "Customer",
+    tableName: "Customers",
     timestamps: true,
     underscored: true,
   }
 );
+
+// Nếu bạn muốn test nhanh ở đây, có thể mock models và gọi associate
+// ví dụ:
+// Customer.associate({ User: UserModelMock, MenuItemComment: CommentModelMock });
 
 export default Customer;

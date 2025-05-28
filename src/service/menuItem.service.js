@@ -3,9 +3,6 @@ import { Op } from 'sequelize';
 import MenuItem from '../models/menu_items.js';
 import Category from '../models/category.js';
 
-// ✅ Thiết lập quan hệ ngay tại đây
-MenuItem.associate?.({ Category });
-Category.associate?.({ MenuItem }); // Nếu có quan hệ ngược, optional
 
 const menuItemService = {
   async createMenuItem(data) {

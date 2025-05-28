@@ -34,7 +34,7 @@ export const getCustomerByUserId = async (userId) => {
       include: [
         {
           model: User,
-          as: "user",
+          as: "user_info",
           include: [
             {
               model: Account,
@@ -60,7 +60,7 @@ export const updateCustomer = async (userId, updateData) => {
       where: { user_id: userId },
       include: {
         model: User,
-        as: "user",
+        as: "user_info",
         include: {
           model: Account,
           as: "account",
@@ -68,7 +68,7 @@ export const updateCustomer = async (userId, updateData) => {
       },
     });
 
-    if (!customer || !customer.user || !customer.user.account) {
+    if (!customer || !customer.user_info || !customer.user_info.account) {
       throw new Error("Không tìm thấy thông tin khách hàng hoặc liên kết người dùng.");
     }
 
@@ -93,10 +93,9 @@ export const updateCustomer = async (userId, updateData) => {
       email: updateData.email,
     };
     await Account.update(accountFields, {
-      where: { id: customer.user.account_id },
+      where: { id: customer.user_info.account_id },
     });
 
-    // Trả lại dữ liệu mới
     return await getCustomerByUserId(userId);
   } catch (error) {
     console.error("❌ Lỗi updateCustomer:", error);
@@ -128,7 +127,7 @@ export const getAllCustomers = async () => {
       include: [
         {
           model: User,
-          as: "user",
+          as: "user_info",
           include: [
             {
               model: Account,
@@ -154,7 +153,7 @@ export const searchCustomersByName = async (searchTerm) => {
       include: [
         {
           model: User,
-          as: "user",
+          as: "user_info",
           where: {
             name: {
               [Op.like]: `%${searchTerm}%`,

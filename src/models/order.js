@@ -9,12 +9,6 @@ class Order extends Model {
       onDelete: 'CASCADE',
     });
 
-    Order.belongsTo(models.Staff, {
-      foreignKey: 'staff_id',
-      as: 'staff',
-      onDelete: 'SET NULL',
-    });
-
     Order.belongsTo(models.Table, {
       foreignKey: 'table_id',
       as: 'table',
@@ -40,10 +34,6 @@ Order.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    staff_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
     table_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -61,6 +51,15 @@ Order.init(
       defaultValue: DataTypes.NOW,
     },
     total_amount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+    },
+    discount_amount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+      defaultValue: 0.0,
+    },
+    final_amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
     },

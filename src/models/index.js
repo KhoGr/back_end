@@ -1,42 +1,40 @@
-import { sequelize } from '../config/database.js'; // Cấu hình Sequelize
+// Import config và models
+import { sequelize } from "../config/database.js";
+import Account from "./account.js";
+import User from "./user.js";
+import Staff from "./staff.js";
+import MenuItem from "./menu_items.js";
+import MenuItemComment from "./menu_item_comments.js";
+import Category from "./category.js";
+import Order from "./order.js";
+import Table from "./table.js";
+import Customer from "./customer.js"
+import OrderItem from "./order_item.js";
 
-// Import models
-import Account from './account.js';
-import User from './user.js';
-import Staff from './staff.js';
-import Customer from './customer.js';
-import MenuItem from './menu_items.js';
-import MenuItemComment from './menu_item_comments.js'
-import Category from './category.js'
-
-// Khởi tạo models
+// Danh sách models
 const models = {
   Account,
   User,
   Staff,
-  Customer,
   MenuItem,
   MenuItemComment,
-  Category
+  Category,
+  Order,
+  Table,
+  Customer,
+OrderItem
 };
-  // Define associations
-  MenuItem.belongsTo(models.Category, {
-    foreignKey: "category_id",
-    as: "category", 
-    onDelete: "CASCADE",
-  });
-  
-  MenuItem.hasMany(models.MenuItemComment, {
-    foreignKey: 'item_id',
-    as: 'item_comments', // đổi alias từ 'comments'
-    onDelete: 'CASCADE',
-  });
 
-Object.values(models).forEach((model) => {
-  if (typeof model.associate === 'function') {
+// Gọi associate() cho mọi model TRỪ Customer trước
+Object.entries(models).forEach(([name, model]) => {
+  if (name !== "Customer" && typeof model.associate === "function") {
     model.associate(models);
   }
 });
+
+if (typeof Customer.associate === "function") {
+  Customer.associate(models);
+}
 
 export { sequelize };
 export default models;
