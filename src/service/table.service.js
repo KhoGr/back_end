@@ -14,13 +14,22 @@ export const getTableById = async (tableId) => {
 };
 
 export const createTable = async (data) => {
-  const { table_number } = data;
-  const existing = await Table.findOne({ where: { table_number } });
+  const { table_number, floor } = data;
+
+  const existing = await Table.findOne({
+    where: {
+      table_number,
+      floor,
+    },
+  });
+
   if (existing) {
-    throw new Error("Table number already exists");
+    throw new Error("Số bàn này đã tồn tại ở tầng đã chọn.");
   }
+
   return await Table.create(data);
 };
+
 
 export const updateTable = async (tableId, updates) => {
   const table = await Table.findByPk(tableId);

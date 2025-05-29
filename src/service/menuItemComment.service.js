@@ -80,6 +80,27 @@ const searchComments = async ({ rating, customerName, itemName }) => {
     order: [['created_at', 'DESC']],
   });
 };
+const getAllComments = async () => {
+  return await MenuItemComment.findAll({
+    include: [
+      {
+        model: Customer,
+        as: 'commenter',
+        include: {
+          model: User,
+          as: 'user',
+          attributes: ['name', 'avatar'],
+        },
+      },
+      {
+        model: models.MenuItem,
+        as: 'commented_item',
+        attributes: ['name'],
+      },
+    ],
+    order: [['created_at', 'DESC']],
+  });
+};
 
 
 export default {
@@ -87,5 +108,6 @@ export default {
   getCommentsByItemId,
   updateComment,
   deleteComment,
-  searchComments
+  searchComments,
+  getAllComments
 };

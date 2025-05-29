@@ -21,7 +21,7 @@ Table.init(
     table_number: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
+      unique: false,
     },
     floor: {
       type: DataTypes.INTEGER,

@@ -17,5 +17,7 @@ router.put('/:comment_id', menuItemCommentController.updateMenuItemComment);
 
 // Xoá comment
 router.delete('/:comment_id', menuItemCommentController.deleteMenuItemComment);
+router.get('/', menuItemCommentController.getAllMenuItemComments);
+
 
 export default router;

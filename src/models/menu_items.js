@@ -19,7 +19,7 @@ class MenuItem extends Model {
 
 MenuItem.init(
   {
-    id: {
+    item_id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,

@@ -53,6 +53,14 @@ const searchMenuItemComments = async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 };
+const getAllMenuItemComments = async (req, res) => {
+  try {
+    const comments = await menuItemCommentHandler.getAllComments();
+    return res.status(200).json(comments);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
 
 export default {
   createMenuItemComment,
@@ -60,4 +68,5 @@ export default {
   updateMenuItemComment,
   deleteMenuItemComment,
   searchMenuItemComments,
+  getAllMenuItemComments
 };
