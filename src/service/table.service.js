@@ -32,8 +32,10 @@ export const updateTable = async (tableId, updates) => {
 };
 
 export const deleteTable = async (tableId) => {
+  console.log(tableId)
   const table = await Table.findByPk(tableId);
   if (!table) {
+    console.log("ko nhận được ID")
     throw new Error("Table not found");
   }
   await table.destroy();

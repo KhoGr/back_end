@@ -19,6 +19,7 @@ import tableApi from "./src/apis/table.api.js"; // 👈 Route mới
 import { sequelize } from "./src/config/database.js";
 
 dotenv.config();
+const connectedUsers = new Map();
 
 const app = express();
 const server = http.createServer(app); // 👈 Dùng http để tạo server
@@ -79,15 +80,27 @@ app.use("/api/table", tableApi); // 👈 Đường dẫn API mới
 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
-  console.log("🟢 Admin hoặc client đã kết nối:", socket.id);
+  console.log("🟢 Client connected:", socket.id);
+
+  // Nhận userId từ client để lưu map
+  socket.on("register", (userId) => {
+    connectedUsers.set(userId, socket.id);
+    console.log(`📌 Registered user ${userId} with socket ${socket.id}`);
+  });
 
   socket.on("disconnect", () => {
-    console.log("🔴 Client ngắt kết nối:", socket.id);
+    console.log("🔴 Client disconnected:", socket.id);
+    for (const [userId, id] of connectedUsers.entries()) {
+      if (id === socket.id) {
+        connectedUsers.delete(userId);
+        break;
+      }
+    }
   });
 });
 
 // Khởi động server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
   console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
 });

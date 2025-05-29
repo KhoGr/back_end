@@ -29,16 +29,32 @@ export const createTable = async (req, res) => {
 
 export const updateTable = async (req, res) => {
   try {
-    const updatedTable = await TableService.updateTable(req.params.id, req.body);
+    const updatedTable = await TableService.updateTable(req.params.tableId, req.body);
+
+    // Lấy socket ID người gửi từ header
+    const senderSocketId = req.headers['x-socket-id'];
+
+    // Gửi tới tất cả client trừ người gửi
+    req.io.sockets.sockets.forEach((socket) => {
+      if (socket.id !== senderSocketId) {
+        socket.emit("table-booked", updatedTable);
+      }
+    });
+
+    console.log("📤 Broadcast table-booked cho các client khác");
+
     res.status(200).json({ success: true, data: updatedTable });
-  } catch {
+  } catch (error) {
+    console.error("Update table error:", error);
     res.status(500).json({ success: false, message: "Failed to update table" });
   }
 };
 
+
+
 export const deleteTable = async (req, res) => {
   try {
-    const result = await TableService.deleteTable(req.params.id);
+    const result = await TableService.deleteTable(req.params.tableId);
     res.status(200).json({ success: true, message: result.message });
   } catch {
     res.status(500).json({ success: false, message: "Failed to delete table" });
@@ -51,7 +67,6 @@ export const bookTable = async (req, res) => {
     const { table_id } = req.body;
     const booked = await TableService.bookTable(table_id);
 
-    // Socket.IO emit: thông báo tới tất cả client
     req.io.emit("table-booked", booked);
 
     res.status(200).json({ success: true, data: booked });
