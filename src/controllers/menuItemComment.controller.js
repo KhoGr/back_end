@@ -1,4 +1,4 @@
-import menuItemCommentHandler from '../service/menuItemComment.service';
+import menuItemCommentHandler from '../service/menuItemComment.service.js';
 
 const createMenuItemComment = async (req, res) => {
   try {

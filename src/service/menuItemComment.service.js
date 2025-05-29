@@ -6,7 +6,13 @@ const createComment = async (data) => {
   if (data.rating && (data.rating < 1 || data.rating > 5)) {
     throw new Error('Rating must be between 1 and 5');
   }
-  return await MenuItemComment.create(data);
+
+  return await MenuItemComment.create({
+    item_id: data.item_id,
+    customer_id: data.customer_id,
+    rating: data.rating,
+    comment: data.content, // ánh xạ đúng field cho DB
+  });
 };
 
 const getCommentsByItemId = async (item_id) => {
@@ -18,7 +24,7 @@ const getCommentsByItemId = async (item_id) => {
         as: 'commenter', // ✅ đúng alias theo model
         include: {
           model: User,
-          as: 'user',
+          as: 'user_info',
           attributes: ['name', 'avatar'],
         },
       },
@@ -88,7 +94,7 @@ const getAllComments = async () => {
         as: 'commenter',
         include: {
           model: User,
-          as: 'user',
+          as: 'user_info',
           attributes: ['name', 'avatar'],
         },
       },

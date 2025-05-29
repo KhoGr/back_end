@@ -15,6 +15,7 @@ import menuItemApi from "./src/apis/menuItem.api.js";
 import comboItemApi from "./src/apis/comboItem.api.js";
 import orderAPI from "./src/apis/order.api.js";
 import tableApi from "./src/apis/table.api.js"; // 👈 Route mới
+import menuItemCommentApi from './src/apis/menuItemComment.api.js'
 
 import { sequelize } from "./src/config/database.js";
 
@@ -77,6 +78,7 @@ app.use("/api/menuitem", menuItemApi);
 app.use("/api/comboItem", comboItemApi);
 app.use("/api/order", orderAPI);
 app.use("/api/table", tableApi); // 👈 Đường dẫn API mới
+app.use("/api/menu-item-comment", menuItemCommentApi); // 👈 Đường dẫn API mới
 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
