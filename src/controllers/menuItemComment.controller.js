@@ -42,17 +42,21 @@ const deleteMenuItemComment = async (req, res) => {
 
 const searchMenuItemComments = async (req, res) => {
   try {
-    const { rating, customerName, itemName } = req.query;
+    const { rating, customerId, itemName } = req.query;
+
     const comments = await menuItemCommentHandler.searchComments({
       rating: rating ? Number(rating) : undefined,
-      customerName,
+      customerId,
       itemName,
     });
+
     return res.status(200).json(comments);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    console.error('❌ Error searching comments:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
 const getAllMenuItemComments = async (req, res) => {
   try {
     const comments = await menuItemCommentHandler.getAllComments();

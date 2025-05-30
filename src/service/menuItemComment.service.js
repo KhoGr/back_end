@@ -1,6 +1,8 @@
 import models from '../models/index.js';
+import { Op } from "sequelize";
 
-const { MenuItemComment, Customer, User } = models;
+
+const { MenuItemComment, Customer, User ,MenuItem} = models;
 
 const createComment = async (data) => {
   if (data.rating && (data.rating < 1 || data.rating > 5)) {
@@ -11,7 +13,7 @@ const createComment = async (data) => {
     item_id: data.item_id,
     customer_id: data.customer_id,
     rating: data.rating,
-    comment: data.content, // ánh xạ đúng field cho DB
+    comment: data.comment, 
   });
 };
 
@@ -50,42 +52,78 @@ const deleteComment = async (comment_id) => {
   await comment.destroy();
   return { message: 'Comment deleted successfully' };
 };
-const searchComments = async ({ rating, customerName, itemName }) => {
-  return await MenuItemComment.findAll({
-    where: {
-      ...(rating && { rating }),
-    },
+
+const searchComments = async ({ rating, customerId, itemName }) => {
+  console.log('🔍 Input search params:', { rating, customerId, itemName });
+
+  const include = [];
+
+  // Luôn include Customer và User để FE có thông tin người bình luận
+  include.push({
+    model: Customer,
+    as: 'commenter',
+    required: false,
     include: [
       {
-        model: Customer,
-        as: 'commenter',
-        include: [
-          {
-            model: User,
-            as: 'user',
-            attributes: ['name', 'avatar'],
-            where: customerName
-              ? {
-                  name: { [Op.like]: `%${customerName}%` }, 
-                }
-              : undefined,
-          },
-        ],
-      },
-      {
-        model: MenuItem,
-        as: 'commented_item',
-        attributes: ['name'],
-        where: itemName
-          ? {
-              name: { [Op.iLike]: `%${itemName}%` },
-            }
-          : undefined,
+        model: User,
+        as: 'user_info',
+        attributes: ['name', 'avatar'],
       },
     ],
-    order: [['created_at', 'DESC']],
   });
+
+  // Include MenuItem
+  if (itemName) {
+    console.log('🍽️ Filtering by item name:', itemName);
+    include.push({
+      model: MenuItem,
+      as: 'commented_item',
+      required: true,
+      attributes: ['name'],
+      where: {
+        name: {
+          [Op.like]: `%${itemName}%`,
+        },
+      },
+    });
+  } else {
+    include.push({
+      model: MenuItem,
+      as: 'commented_item',
+      attributes: ['name'],
+    });
+  }
+
+  // Where clause chính
+  const whereClause = {};
+  if (rating) {
+    console.log('⭐ Filtering by rating:', rating);
+    whereClause.rating = rating;
+  }
+
+  if (customerId) {
+    console.log('👤 Filtering by customer_id:', customerId);
+    whereClause.customer_id = customerId;
+  }
+
+  console.log('📦 Final include config:', JSON.stringify(include, null, 2));
+  console.log('🔎 Final where clause:', whereClause);
+
+  try {
+    const comments = await MenuItemComment.findAll({
+      where: whereClause,
+      include,
+    });
+
+    console.log(`✅ Found ${comments.length} comment(s)`);
+    return comments;
+  } catch (error) {
+    console.error('❌ Error while searching comments:', error);
+    throw error;
+  }
 };
+
+
 const getAllComments = async () => {
   return await MenuItemComment.findAll({
     include: [
