@@ -15,6 +15,12 @@ class Order extends Model {
       onDelete: 'SET NULL',
     });
 
+    Order.belongsTo(models.Voucher, {
+      foreignKey: 'voucher_id',
+      as: 'voucher',
+      onDelete: 'SET NULL',
+    });
+
     Order.hasMany(models.OrderItem, {
       foreignKey: 'order_id',
       as: 'order_items',
@@ -25,7 +31,7 @@ class Order extends Model {
 
 Order.init(
   {
-      id: {
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
@@ -35,6 +41,10 @@ Order.init(
       allowNull: true,
     },
     table_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    voucher_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
@@ -58,6 +68,20 @@ Order.init(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
       defaultValue: 0.0,
+    },
+    vip_discount_percent: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0.0,
+    },
+    shipping_fee: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0.0,
+    },
+    free_shipping_applied: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     final_amount: {
       type: DataTypes.DECIMAL(10, 2),

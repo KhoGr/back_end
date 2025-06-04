@@ -1,5 +1,5 @@
 import { Model, DataTypes } from "sequelize";
-import { sequelize } from "../config/database.js"; // hoặc nơi bạn định nghĩa sequelize
+import { sequelize } from "../config/database.js";
 
 class Customer extends Model {
   static associate(models) {
@@ -9,10 +9,21 @@ class Customer extends Model {
       onDelete: "CASCADE",
     });
 
+    Customer.belongsTo(models.VipLevel, {
+      foreignKey: "vip_id",
+      as: "vip_level",
+      onDelete: "SET NULL",
+    });
+
     Customer.hasMany(models.MenuItemComment, {
       foreignKey: "customer_id",
       as: "customer_comments",
       onDelete: "CASCADE",
+    });
+
+    Customer.hasMany(models.VoucherRedemption, {
+      foreignKey: "customer_id",
+      as: "voucher_usages",
     });
   }
 }
@@ -28,10 +39,19 @@ Customer.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: "Users", // tên bảng trong DB, không phải model
+        model: "Users",
         key: "user_id",
       },
       onDelete: "CASCADE",
+    },
+    vip_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "vip_levels",
+        key: "id",
+      },
+      onDelete: "SET NULL",
     },
     loyalty_point: {
       type: DataTypes.INTEGER,
@@ -40,10 +60,6 @@ Customer.init(
     total_spent: {
       type: DataTypes.DECIMAL(10, 2),
       defaultValue: 0.0,
-    },
-    membership_level: {
-      type: DataTypes.ENUM("bronze", "silver", "gold", "platinum"),
-      defaultValue: "bronze",
     },
     note: {
       type: DataTypes.TEXT,
@@ -61,14 +77,15 @@ Customer.init(
   {
     sequelize,
     modelName: "Customer",
-    tableName: "Customers",
+    tableName: "customers",
     timestamps: true,
     underscored: true,
+
+    // ✅ Ngăn Sequelize tự tạo cột `id`
+    defaultScope: {
+      attributes: { exclude: ["id"] },
+    },
   }
 );
-
-// Nếu bạn muốn test nhanh ở đây, có thể mock models và gọi associate
-// ví dụ:
-// Customer.associate({ User: UserModelMock, MenuItemComment: CommentModelMock });
 
 export default Customer;

@@ -1,7 +1,8 @@
 import models from "../models/index.js";
 import { Op } from "sequelize";
+import VipLevelService from "../service/vip.service.js";
 
-const { Customer, User, Account } = models;
+const { Customer, User, Account, VipLevel } = models;
 
 // ✅ Tạo mới Customer
 export const createCustomer = async (userId, data = {}) => {
@@ -11,11 +12,16 @@ export const createCustomer = async (userId, data = {}) => {
       throw new Error("Customer đã tồn tại cho user này.");
     }
 
+    // Lấy vip level theo total_spent nếu có
+    const totalSpent = data.total_spent || 0;
+    const vipLevel = await VipLevelService.getLevelForSpentAmount(totalSpent);
+
     const newCustomer = await Customer.create({
       user_id: userId,
       loyalty_point: data.loyalty_point || 0,
-      total_spent: data.total_spent || 0,
+      total_spent: totalSpent,
       membership_level: data.membership_level || "bronze",
+      vip_id: vipLevel?.id || null,
       note: data.note || null,
     });
 
@@ -42,6 +48,11 @@ export const getCustomerByUserId = async (userId) => {
               attributes: ["email"],
             },
           ],
+        },
+        {
+          model: VipLevel,
+          as: "vip_level",
+          attributes: ["id", "name"], // => vip_name
         },
       ],
     });
@@ -72,29 +83,38 @@ export const updateCustomer = async (userId, updateData) => {
       throw new Error("Không tìm thấy thông tin khách hàng hoặc liên kết người dùng.");
     }
 
-    // Cập nhật Customer
+    // Nếu có cập nhật chi tiêu => tự động xét lại cấp VIP
+    let vipLevel = null;
+    if (updateData.total_spent !== undefined) {
+      vipLevel = await VipLevelService.getLevelForSpentAmount(updateData.total_spent);
+    }
+
     const customerFields = {
-      loyalty_point: updateData.loyalty_point,
-      total_spent: updateData.total_spent,
-      membership_level: updateData.membership_level,
-      note: updateData.note,
+      loyalty_point: updateData.loyalty_point ?? customer.loyalty_point,
+      total_spent: updateData.total_spent ?? customer.total_spent,
+      note: updateData.note ?? customer.note,
+      ...(vipLevel && { vip_id: vipLevel.id }),
+      ...(vipLevel && { membership_level: vipLevel.level_name }), // <- Cập nhật đồng bộ hạng
     };
+
     await Customer.update(customerFields, { where: { user_id: userId } });
 
-    // Cập nhật User
-    const userFields = {
-      name: updateData.name,
-      username: updateData.username,
-    };
-    await User.update(userFields, { where: { user_id: userId } });
+    await User.update(
+      {
+        name: updateData.name ?? customer.user_info.name,
+        username: updateData.username ?? customer.user_info.username,
+      },
+      { where: { user_id: userId } }
+    );
 
-    // Cập nhật Account
-    const accountFields = {
-      email: updateData.email,
-    };
-    await Account.update(accountFields, {
-      where: { id: customer.user_info.account_id },
-    });
+    await Account.update(
+      {
+        email: updateData.email ?? customer.user_info.account.email,
+      },
+      {
+        where: { id: customer.user_info.account_id },
+      }
+    );
 
     return await getCustomerByUserId(userId);
   } catch (error) {
@@ -102,7 +122,6 @@ export const updateCustomer = async (userId, updateData) => {
     throw error;
   }
 };
-
 // ✅ Xóa customer theo user_id (cascade xóa luôn Customer)
 export const deleteCustomer = async (userId) => {
   try {
@@ -120,7 +139,7 @@ export const deleteCustomer = async (userId) => {
   }
 };
 
-// ✅ Lấy tất cả customers
+// ✅ Lấy tất cả customers (có vip_name)
 export const getAllCustomers = async () => {
   try {
     const customers = await Customer.findAll({
@@ -135,6 +154,11 @@ export const getAllCustomers = async () => {
               attributes: ["email"],
             },
           ],
+        },
+        {
+          model: VipLevel,
+          as: "vip_level",
+          attributes: ["id", "name","min_total_spent","discount_percent","free_shipping_threshold","benefits"], // => vip_name
         },
       ],
     });
@@ -167,6 +191,11 @@ export const searchCustomersByName = async (searchTerm) => {
             },
           ],
         },
+        {
+          model: VipLevel,
+          as: "vip_level",
+          attributes: ["id", "name","min_total_spent","discount_percent","free_shipping_threshold","benefits"], // => vip_name
+        },
       ],
     });
 
@@ -175,4 +204,28 @@ export const searchCustomersByName = async (searchTerm) => {
     console.error("❌ Lỗi khi tìm kiếm customer:", error);
     throw new Error("Không thể tìm kiếm customer.");
   }
+  
+};
+export const updateCustomerSpentAndVip = async (customerId) => {
+  const customer = await Customer.findByPk(customerId);
+  if (!customer) throw new Error('Customer not found');
+
+  const orders = await Order.findAll({
+    where: {
+      customer_id: customerId,
+      is_paid: true,
+    },
+  });
+
+  const totalSpent = orders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+
+  const vipLevel = await VipLevelService.getLevelForSpentAmount(totalSpent);
+
+  await customer.update({
+    total_spent: totalSpent,
+    vip_id: vipLevel?.id || null,
+    membership_level: vipLevel?.level_name || 'bronze',
+  });
+
+  return customer;
 };

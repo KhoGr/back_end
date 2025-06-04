@@ -5,13 +5,14 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const orderAPI = Router();
 
+// 🔍 Tìm kiếm/lọc đơn hàng theo từ khóa/trạng thái/ngày
+// ⚠️ Đặt trước /:id để tránh bị hiểu nhầm là param id
+orderAPI.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
+
 // 📋 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
 orderAPI.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
 
-// 🔍 Tìm kiếm/lọc đơn hàng theo từ khoá/trạng thái/ngày
-orderAPI.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
-
-// 🆕 Tạo mới đơn hàng (nhân viên hoặc khách)
+// 🆕 Tạo mới đơn hàng (nhân viên hoặc khách hàng)
 orderAPI.post('/', jwtAuthentication, OrderController.create);
 
 // 📦 Lấy chi tiết đơn hàng

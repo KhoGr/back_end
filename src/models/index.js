@@ -10,6 +10,9 @@ import Order from "./order.js";
 import Table from "./table.js";
 import Customer from "./customer.js"
 import OrderItem from "./order_item.js";
+import Voucher from "./voucher/Voucher.js"
+import VoucherRedemption from "./voucher/VoucherRedemption.js"
+import VipLevel from "./MembershipTier.js";
 
 // Danh sách models
 const models = {
@@ -22,7 +25,10 @@ const models = {
   Order,
   Table,
   Customer,
-OrderItem
+OrderItem,
+Voucher,
+VoucherRedemption,
+VipLevel
 };
 
 // Gọi associate() cho mọi model TRỪ Customer trước

@@ -49,7 +49,9 @@ const OrderController = {
     const { status } = req.body;
 
     if (!status) {
-      return res.status(400).json({ success: false, message: 'Status is required' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Status is required' });
     }
 
     try {
@@ -65,7 +67,9 @@ const OrderController = {
   async remove(req, res) {
     try {
       await deleteOrder(req.params.id);
-      res.status(200).json({ success: true, message: 'Order deleted successfully' });
+      res
+        .status(200)
+        .json({ success: true, message: 'Order deleted successfully' });
     } catch (error) {
       console.error('[Delete Order]', error.message);
       res.status(400).json({ success: false, message: error.message });
@@ -87,7 +91,9 @@ const OrderController = {
   async markPaid(req, res) {
     const { method } = req.body;
     if (!method) {
-      return res.status(400).json({ success: false, message: 'Payment method is required' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Payment method is required' });
     }
 
     try {
