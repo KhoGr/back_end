@@ -45,7 +45,6 @@ class VipLevelService {
     });
   }
 
-  // ✅ Xác định cấp độ phù hợp với tổng chi tiêu
 async getLevelForSpentAmount(totalSpent) {
   // Lấy danh sách VIP theo thứ tự từ cao xuống thấp
   const levels = await VipLevel.findAll({

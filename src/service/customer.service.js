@@ -2,7 +2,7 @@ import models from "../models/index.js";
 import { Op } from "sequelize";
 import VipLevelService from "../service/vip.service.js";
 
-const { Customer, User, Account, VipLevel } = models;
+const { Customer, User, Account, VipLevel,Order } = models;
 
 // ✅ Tạo mới Customer
 export const createCustomer = async (userId, data = {}) => {
@@ -94,7 +94,7 @@ export const updateCustomer = async (userId, updateData) => {
       total_spent: updateData.total_spent ?? customer.total_spent,
       note: updateData.note ?? customer.note,
       ...(vipLevel && { vip_id: vipLevel.id }),
-      ...(vipLevel && { membership_level: vipLevel.level_name }), // <- Cập nhật đồng bộ hạng
+      ...(vipLevel && { membership_level: vipLevel.level_name }),
     };
 
     await Customer.update(customerFields, { where: { user_id: userId } });
@@ -207,24 +207,45 @@ export const searchCustomersByName = async (searchTerm) => {
   
 };
 export const updateCustomerSpentAndVip = async (customerId) => {
+  console.log('🔍 [updateCustomerSpentAndVip] Bắt đầu cập nhật cho customerId:', customerId);
+
   const customer = await Customer.findByPk(customerId);
-  if (!customer) throw new Error('Customer not found');
+  console.log("customer nhận được là",customer)
+  if (!customer) {
+    console.error('❌ Customer không tồn tại:', customerId);
+    throw new Error('Customer not found');
+  }
 
   const orders = await Order.findAll({
     where: {
       customer_id: customerId,
       is_paid: true,
+      status: 'completed', // 🔄 Thêm điều kiện status completed nếu cần
     },
   });
 
-  const totalSpent = orders.reduce((sum, order) => sum + Number(order.total_amount), 0);
+  console.log(`🧾 Tìm thấy ${orders.length} đơn hàng đã thanh toán & hoàn tất.`);
+
+  orders.forEach((order, idx) => {
+    console.log(`  - Đơn hàng #${idx + 1} | ID: ${order.id} | Final amount: ${order.final_amount}`);
+  });
+
+  const totalSpent = orders.reduce((sum, order) => sum + Number(order.final_amount || 0), 0);
+  console.log('💰 Tổng tiền đã chi:', totalSpent);
 
   const vipLevel = await VipLevelService.getLevelForSpentAmount(totalSpent);
+  console.log('⭐ Cấp VIP mới:', vipLevel || 'Không có (giữ bronze)');
 
   await customer.update({
     total_spent: totalSpent,
     vip_id: vipLevel?.id || null,
     membership_level: vipLevel?.level_name || 'bronze',
+  });
+
+  console.log('✅ [updateCustomerSpentAndVip] Cập nhật thành công cho customer:', {
+    id: customer.customer_id,
+    total_spent: customer.total_spent,
+    vip_id: customer.vip_id,
   });
 
   return customer;

@@ -18,11 +18,8 @@ orderAPI.post('/', jwtAuthentication, OrderController.create);
 // 📦 Lấy chi tiết đơn hàng
 orderAPI.get('/:id', jwtAuthentication, OrderController.getById);
 
-// 🔁 Cập nhật trạng thái đơn hàng
-orderAPI.patch('/:id/status', jwtAuthentication, verifyAdmin, OrderController.updateStatus);
-
-// 💰 Đánh dấu đơn hàng đã thanh toán
-orderAPI.patch('/:id/pay', jwtAuthentication, verifyAdmin, OrderController.markPaid);
+// 🔁 Cập nhật đơn hàng (status, is_paid, payment_method,...)
+orderAPI.patch('/:id', jwtAuthentication, verifyAdmin, OrderController.update);
 
 // 🔄 Tính lại tổng tiền đơn hàng
 orderAPI.patch('/:id/recalculate', jwtAuthentication, verifyAdmin, OrderController.recalculateTotal);

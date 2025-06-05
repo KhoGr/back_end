@@ -1,10 +1,11 @@
+
+
 import {
   createOrder,
   getAllOrders,
   getOrderById,
-  updateOrderStatus,
+  updateOrder,
   deleteOrder,
-  markAsPaid,
   searchOrders,
   calculateTotalAmount,
 } from '../service/order.service.js';
@@ -12,12 +13,19 @@ import {
 const OrderController = {
   // 🆕 Tạo đơn hàng
   async create(req, res) {
+    console.log('[OrderController.create] req.body:', JSON.stringify(req.body, null, 2));
     try {
       const order = await createOrder(req.body);
+      console.log('[OrderController.create] Order created successfully:', JSON.stringify(order, null, 2));
+
+      // 📤 Phát socket cho tất cả client
+      req.io.emit("order-created", order);
+      console.log("📤 Emit 'order-created'");
+
       res.status(201).json({ success: true, data: order });
     } catch (error) {
-      console.error('[Create Order]', error.message);
-      res.status(400).json({ success: false, message: error.message });
+      console.error('[Create Order] Error object:', error);
+      res.status(400).json({ success: false, message: error.message || 'Unknown error' });
     }
   },
 
@@ -43,22 +51,30 @@ const OrderController = {
     }
   },
 
-  // 🔁 Cập nhật trạng thái đơn hàng
-  async updateStatus(req, res) {
+  // 🔁 Cập nhật đơn hàng
+  async update(req, res) {
     const { id } = req.params;
-    const { status } = req.body;
+    const updates = req.body;
 
-    if (!status) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Status is required' });
+    if (!updates || typeof updates !== 'object') {
+      return res.status(400).json({ success: false, message: 'No valid update payload provided' });
     }
 
     try {
-      const updatedOrder = await updateOrderStatus(id, status);
+      const updatedOrder = await updateOrder(id, updates);
+
+      // 📤 Gửi socket cập nhật đơn hàng
+      const senderSocketId = req.headers['x-socket-id'];
+      req.io.sockets.sockets.forEach((socket) => {
+        if (socket.id !== senderSocketId) {
+          socket.emit("order-updated", updatedOrder);
+        }
+      });
+      console.log("📤 Emit 'order-updated'");
+
       res.status(200).json({ success: true, data: updatedOrder });
     } catch (error) {
-      console.error('[Update Status]', error.message);
+      console.error('[Update Order]', error.message);
       res.status(400).json({ success: false, message: error.message });
     }
   },
@@ -67,9 +83,7 @@ const OrderController = {
   async remove(req, res) {
     try {
       await deleteOrder(req.params.id);
-      res
-        .status(200)
-        .json({ success: true, message: 'Order deleted successfully' });
+      res.status(200).json({ success: true, message: 'Order deleted successfully' });
     } catch (error) {
       console.error('[Delete Order]', error.message);
       res.status(400).json({ success: false, message: error.message });
@@ -87,24 +101,6 @@ const OrderController = {
     }
   },
 
-  // 💰 Đánh dấu đã thanh toán
-  async markPaid(req, res) {
-    const { method } = req.body;
-    if (!method) {
-      return res
-        .status(400)
-        .json({ success: false, message: 'Payment method is required' });
-    }
-
-    try {
-      const order = await markAsPaid(req.params.id, method);
-      res.status(200).json({ success: true, data: order });
-    } catch (error) {
-      console.error('[Mark Paid]', error.message);
-      res.status(400).json({ success: false, message: error.message });
-    }
-  },
-
   // 🔄 Tính lại tổng tiền đơn hàng
   async recalculateTotal(req, res) {
     try {
@@ -118,3 +114,4 @@ const OrderController = {
 };
 
 export default OrderController;
+

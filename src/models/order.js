@@ -25,6 +25,7 @@ class Order extends Model {
       foreignKey: 'order_id',
       as: 'order_items',
       onDelete: 'CASCADE',
+       hooks: true,
     });
   }
 }
