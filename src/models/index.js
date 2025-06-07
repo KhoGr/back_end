@@ -2,7 +2,6 @@
 import { sequelize } from "../config/database.js";
 import Account from "./account.js";
 import User from "./user.js";
-import Staff from "./staff.js";
 import MenuItem from "./menu_items.js";
 import MenuItemComment from "./menu_item_comments.js";
 import Category from "./category.js";
@@ -11,8 +10,13 @@ import Table from "./table.js";
 import Customer from "./customer.js"
 import OrderItem from "./order_item.js";
 import Voucher from "./voucher/Voucher.js"
-import VoucherRedemption from "./voucher/VoucherRedemption.js"
+import VoucherRedemption from "./voucher/VoucherRedemption.js";
 import VipLevel from "./MembershipTier.js";
+import Attendance from "./attendance.js"
+import Payroll from "./payroll.js"
+import WorkShift from "./workship.js"
+import Staff from "./staff.js";
+
 
 // Danh sách models
 const models = {
@@ -28,7 +32,10 @@ const models = {
 OrderItem,
 Voucher,
 VoucherRedemption,
-VipLevel
+VipLevel,
+Attendance,
+Payroll,
+WorkShift
 };
 
 // Gọi associate() cho mọi model TRỪ Customer trước

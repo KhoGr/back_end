@@ -18,6 +18,8 @@ import tableApi from "./src/apis/table.api.js"; // 👈 Route mới
 import menuItemCommentApi from './src/apis/menuItemComment.api.js'
 import membershipApi from './src/apis/vip.api.js'
 import voucherApi from './src/apis/voucher.api.js'
+import workShiftApi from './src/apis/workshift.api.js'
+import attendanceApi from './src/apis/attendance.api.js'
 
 import { sequelize } from "./src/config/database.js";
 
@@ -39,8 +41,14 @@ const io = new Server(server, {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
-app.use(
+app.use(cors({
+  origin: [
+    process.env.CLIENT_URL,                    // domain chính (frontend production/dev)
+    'http://localhost:5173',                   // dev frontend
+    'https://aa3c-14-177-79-8.ngrok-free.app' // link ngrok bạn đang dùng
+  ],
+  credentials: true
+}));app.use(
   session({
     secret: process.env.SESSION_SECRET || "mysecretkey",
     resave: false,
@@ -83,6 +91,8 @@ app.use("/api/table", tableApi); // 👈 Đường dẫn API mới
 app.use("/api/menu-item-comment", menuItemCommentApi); // 👈 Đường dẫn API mới
 app.use("/api/vip", membershipApi); 
 app.use("/api/voucher", voucherApi); 
+app.use("/api/workshift", workShiftApi); 
+app.use("/api/attendance", attendanceApi); 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);
