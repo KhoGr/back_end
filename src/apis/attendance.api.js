@@ -7,6 +7,7 @@ import {
   getAllAttendancesController,
   getAttendancesByStaffId,
   getFilteredAttendances,
+  getAttendancesByStaffAndPeriod
 } from '../controllers/attendance.controller.js';
 import { jwtAuthentication } from '../middlewares/passport.middleware.js';
 import { verifyAdmin } from '../middlewares/auth.middleware.js';
@@ -22,5 +23,7 @@ attendanceApi.get('/:attendance_id', adminOnly, getAttendanceById);           //
 attendanceApi.get('/staff/:staff_id', adminOnly, getAttendancesByStaffId);    // GET     /api/attendances/staff/:staff_id
 attendanceApi.put('/:attendance_id', adminOnly, updateAttendanceController);  // PUT     /api/attendances/:attendance_id
 attendanceApi.delete('/:attendance_id', adminOnly, deleteAttendanceController); // DELETE  /api/attendances/:attendance_id
+attendanceApi.get('/search-by-period', adminOnly, getAttendancesByStaffAndPeriod); // ✅ GET /api/attendances/search-by-period?staff_id=...&start_date=YYYY-MM-DD&end_date=YYYY-MM-DD
+
 
 export default attendanceApi;

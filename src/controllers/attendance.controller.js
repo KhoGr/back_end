@@ -92,3 +92,23 @@ export const getFilteredAttendances = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+export const getAttendancesByStaffAndPeriod = async (req, res) => {
+  try {
+    const { staff_id, start_date, end_date } = req.query;
+
+    if (!staff_id || !start_date || !end_date) {
+      return res.status(400).json({ error: 'Thiếu staff_id, start_date hoặc end_date.' });
+    }
+
+    const attendances = await AttendanceService.attendanceService.getByStaffAndPeriod({
+      staff_id,
+      start_date,
+      end_date,
+    });
+
+    res.json(attendances);
+  } catch (error) {
+    console.error('❌ Lỗi khi lấy attendances theo khoảng thời gian:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

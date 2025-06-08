@@ -203,14 +203,7 @@ update: async (attendance_id, data) => {
   });
 
   return updated;
-},
-
-
-
-
-
-
-  // Lấy điểm danh theo ID
+},  // Lấy điểm danh theo ID
   getById: async (id) => {
     const attendance = await Attendance.findByPk(id, {
       include: [
@@ -272,4 +265,29 @@ update: async (attendance_id, data) => {
       order: [["created_at", "DESC"]],
     });
   },
+  // 📅 Lấy chấm công theo nhân viên + khoảng thời gian (thường là 1 tháng)
+getByStaffAndPeriod: async ({ staff_id, start_date, end_date }) => {
+  if (!staff_id || !start_date || !end_date) {
+    throw new Error("Thiếu thông tin lọc (staff_id, start_date, end_date)");
+  }
+
+  const attendances = await Attendance.findAll({
+    where: {
+      staff_id,
+      check_in_time: {
+        [Op.gte]: new Date(`${start_date}T00:00:00`),
+      },
+      check_out_time: {
+        [Op.lte]: new Date(`${end_date}T23:59:59`),
+      },
+    },
+    include: [
+      { model: WorkShift, as: "work_shift" },
+    ],
+    order: [["check_in_time", "ASC"]],
+  });
+
+  return attendances;
+},
+
 };

@@ -20,6 +20,7 @@ import membershipApi from './src/apis/vip.api.js'
 import voucherApi from './src/apis/voucher.api.js'
 import workShiftApi from './src/apis/workshift.api.js'
 import attendanceApi from './src/apis/attendance.api.js'
+import payrollApi from './src/apis/payroll.api.js'
 
 import { sequelize } from "./src/config/database.js";
 
@@ -93,6 +94,7 @@ app.use("/api/vip", membershipApi);
 app.use("/api/voucher", voucherApi); 
 app.use("/api/workshift", workShiftApi); 
 app.use("/api/attendance", attendanceApi); 
+app.use("/api/payroll", payrollApi); 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);

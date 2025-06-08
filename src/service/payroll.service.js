@@ -1,143 +1,123 @@
 import models from "../models/index.js";
 import { Op } from "sequelize";
 
-const { Payroll, Staff, AttendanceLog, User, Account } = models;
+const { Payroll, Staff, User, Account,Attendance } = models;
 
-/**
- * Tính tổng giờ làm và tạo bảng lương tháng cho nhân viên
- */
-export const generatePayroll = async (staffId, year, month) => {
-  try {
-    const staff = await Staff.findByPk(staffId);
-    if (!staff) {
-      throw new Error("Không tìm thấy nhân viên.");
-    }
+export const payrollService = {
+async generatePayrollForStaff(staff_id, period_start, period_end) {
+  const staff = await Staff.findByPk(staff_id);
+  console.log('👤 Nhân viên:', staff?.toJSON?.());
 
-    // Lấy tất cả log chấm công của nhân viên trong tháng đó
-    const logs = await AttendanceLog.findAll({
-      where: {
-        staff_id: staffId,
-        date: {
-          [Op.between]: [
-            `${year}-${month.toString().padStart(2, "0")}-01`,
-            `${year}-${month.toString().padStart(2, "0")}-31`,
-          ],
-        },
+  if (!staff || !staff.salary || !staff.working_type) {
+    throw new Error('Không tìm thấy nhân viên hoặc thiếu thông tin lương/loại hình.');
+  }
+
+  const attendances = await Attendance.findAll({
+    where: {
+      staff_id,
+      check_in_time: {
+        [Op.between]: [period_start, period_end],
       },
-    });
+    },
+  });
 
-    // Tổng giờ làm
-    const totalHoursWorked = logs.reduce(
-      (sum, log) => sum + (log.hours_worked || 0),
+  console.log('📋 Số attendance:', attendances.length);
+
+  let total_hours = 0;
+  let total_days = 0;
+  let total_salary = 0;
+
+  if (staff.working_type === 'parttime') {
+    total_hours = attendances.reduce(
+      (sum, att) => sum + (att.hours_worked || 0),
       0
     );
+    total_salary = total_hours * Number(staff.salary);
+    console.log(`💼 Part-time: ${total_hours} giờ x ${staff.salary} = ${total_salary}`);
+  } else {
+    // fulltime: tính theo số ngày công (dựa trên số bản ghi chấm công)
+    const uniqueDays = new Set(
+      attendances.map(att =>
+        new Date(att.check_in_time).toISOString().split('T')[0]
+      )
+    );
+    total_days = uniqueDays.size;
+    total_salary = total_days * Number(staff.salary);
+    console.log(`💼 Full-time: ${total_days} ngày x ${staff.salary} = ${total_salary}`);
+  }
 
-    const salaryPerHour = staff.salary || 0;
-    const totalSalary = totalHoursWorked * salaryPerHour;
+  const payroll = await Payroll.create({
+    staff_id,
+    period_start,
+    period_end,
+    total_hours,
+    total_salary,
+    status: 'pending',
+  });
 
-    // Kiểm tra đã có bảng lương chưa
-    const existing = await Payroll.findOne({
-      where: { staff_id: staffId, year, month },
-    });
+  console.log('✅ Payroll:', payroll.toJSON());
 
-    if (existing) {
-      throw new Error("Bảng lương đã tồn tại cho tháng này.");
+  return payroll;
+},
+
+
+  async generatePayrollsForAll(period_start, period_end) {
+    const staffs = await Staff.findAll({ where: { is_active: true } });
+    const results = [];
+
+    for (const staff of staffs) {
+      try {
+        const payroll = await payrollService.generatePayrollForStaff(
+          staff.staff_id,
+          period_start,
+          period_end
+        );
+        results.push(payroll);
+      } catch (err) {
+        console.error(`❌ Payroll failed for staff ${staff.staff_id}:`, err.message);
+      }
     }
 
-    const payroll = await Payroll.create({
-      staff_id: staffId,
-      year,
-      month,
-      total_hours_worked: totalHoursWorked,
-      salary_per_hour: salaryPerHour,
-      total_salary: totalSalary,
-    });
+    return results;
+  },
 
+  async getPayrollById(payroll_id) {
+    const payroll = await Payroll.findByPk(payroll_id, {
+      include: [{ model: Staff, as: 'staff' }],
+    });
+    if (!payroll) throw new Error('Không tìm thấy bản ghi lương');
     return payroll;
-  } catch (error) {
-    console.error("❌ Lỗi tạo bảng lương:", error);
-    throw error;
-  }
-};
+  },
 
-/**
- * Lấy bảng lương theo tháng và/hoặc nhân viên
- */
-export const getPayrolls = async ({ staffId, year, month }) => {
-  try {
-    const whereClause = {};
-    if (staffId) whereClause.staff_id = staffId;
-    if (year) whereClause.year = year;
-    if (month) whereClause.month = month;
+async getAllPayrolls() {
+  return Payroll.findAll({
+    include: [
+      {
+        model: Staff,
+        as: 'staff',
+        include: [
+          {
+            model: User,
+            as: 'user',
+          },
+        ],
+      },
+    ],
+    order: [['period_end', 'DESC']],
+  });
+},
 
-    const payrolls = await Payroll.findAll({
-      where: whereClause,
-      include: [
-        {
-          model: Staff,
-          as: "staff",
-          include: [
-            {
-              model: User,
-              as: "user",
-              include: [
-                {
-                  model: Account,
-                  as: "account",
-                  attributes: ["email"],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-      order: [["year", "DESC"], ["month", "DESC"]],
-    });
 
-    return payrolls;
-  } catch (error) {
-    console.error("❌ Lỗi khi lấy bảng lương:", error);
-    throw error;
-  }
-};
-
-/**
- * Cập nhật bảng lương (ví dụ cập nhật lại lương thủ công)
- */
-export const updatePayroll = async (payrollId, data = {}) => {
-  try {
-    const payroll = await Payroll.findByPk(payrollId);
-    if (!payroll) {
-      throw new Error("Không tìm thấy bảng lương.");
-    }
-
-    await payroll.update({
-      total_hours_worked: data.total_hours_worked || payroll.total_hours_worked,
-      salary_per_hour: data.salary_per_hour || payroll.salary_per_hour,
-      total_salary: data.total_salary || payroll.total_salary,
-    });
-
+  async updatePayrollStatus(payroll_id, status) {
+    const payroll = await Payroll.findByPk(payroll_id);
+    if (!payroll) throw new Error('Không tìm thấy bảng lương');
+    payroll.status = status;
+    await payroll.save();
     return payroll;
-  } catch (error) {
-    console.error("❌ Lỗi cập nhật bảng lương:", error);
-    throw error;
-  }
-};
+  },
 
-/**
- * Xoá bảng lương
- */
-export const deletePayroll = async (payrollId) => {
-  try {
-    const payroll = await Payroll.findByPk(payrollId);
-    if (!payroll) {
-      throw new Error("Không tìm thấy bảng lương để xoá.");
-    }
-
-    await payroll.destroy();
-    return { message: "Đã xoá bảng lương thành công." };
-  } catch (error) {
-    console.error("❌ Lỗi khi xoá bảng lương:", error);
-    throw error;
-  }
+  async deletePayroll(payroll_id) {
+    const result = await Payroll.destroy({ where: { payroll_id } });
+    return { message: result ? 'Đã xoá bảng lương' : 'Không tìm thấy để xoá' };
+  },
 };
