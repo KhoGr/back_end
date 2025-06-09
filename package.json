@@ -2,7 +2,7 @@
   "name": "back_end",
   "version": "1.0.0",
   "type": "module",
-  "description": "",
+  "description": "-- Tạo database nếu chưa tồn tại\r CREATE DATABASE IF NOT EXISTS mini_ecommerce CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;",
   "main": "index.js",
   "scripts": {
     "start": "node server.js"
@@ -32,6 +32,7 @@
     "mysql2": "^3.14.0",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
+    "openai": "^5.1.1",
     "passport": "^0.7.0",
     "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
@@ -41,9 +42,18 @@
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.2",
     "socket.io": "^4.8.1",
+    "string-similarity": "^4.0.4",
     "vite": "^6.0.11"
   },
   "devDependencies": {
     "babel-register": "^6.26.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KhoGr/back_end.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KhoGr/back_end/issues"
+  },
+  "homepage": "https://github.com/KhoGr/back_end#readme"
 }

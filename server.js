@@ -21,6 +21,8 @@ import voucherApi from './src/apis/voucher.api.js'
 import workShiftApi from './src/apis/workshift.api.js'
 import attendanceApi from './src/apis/attendance.api.js'
 import payrollApi from './src/apis/payroll.api.js'
+import chatbotApi from './src/apis/chatbot.api.js'
+import aiModelApi from './src/apis/aiModel.api.js'
 
 import { sequelize } from "./src/config/database.js";
 
@@ -95,6 +97,8 @@ app.use("/api/voucher", voucherApi);
 app.use("/api/workshift", workShiftApi); 
 app.use("/api/attendance", attendanceApi); 
 app.use("/api/payroll", payrollApi); 
+app.use("/api/chatbot", chatbotApi); 
+app.use("/api/aimodel", aiModelApi); 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);

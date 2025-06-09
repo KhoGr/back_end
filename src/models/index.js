@@ -16,6 +16,8 @@ import Attendance from "./attendance.js"
 import Payroll from "./payroll.js"
 import WorkShift from "./workship.js"
 import Staff from "./staff.js";
+import AIModel from "./AIModel.js";
+import ChatbotResponse from "./ChatbotResponse.js";
 
 
 // Danh sách models
@@ -35,7 +37,9 @@ VoucherRedemption,
 VipLevel,
 Attendance,
 Payroll,
-WorkShift
+WorkShift,
+AIModel,
+ChatbotResponse
 };
 
 // Gọi associate() cho mọi model TRỪ Customer trước
