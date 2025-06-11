@@ -18,6 +18,7 @@ import WorkShift from "./workship.js"
 import Staff from "./staff.js";
 import AIModel from "./AIModel.js";
 import ChatbotResponse from "./ChatbotResponse.js";
+import OrderTable from "./order_table.js";
 
 
 // Danh sách models
@@ -39,7 +40,8 @@ Attendance,
 Payroll,
 WorkShift,
 AIModel,
-ChatbotResponse
+ChatbotResponse,
+OrderTable
 };
 
 // Gọi associate() cho mọi model TRỪ Customer trước

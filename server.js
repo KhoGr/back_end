@@ -48,6 +48,7 @@ app.use(cors({
   origin: [
     process.env.CLIENT_URL,                    // domain chính (frontend production/dev)
     'http://localhost:5173',                   // dev frontend
+    'http://localhost:8080',                   // dev frontend
     'https://aa3c-14-177-79-8.ngrok-free.app' // link ngrok bạn đang dùng
   ],
   credentials: true

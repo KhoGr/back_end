@@ -12,7 +12,8 @@ import {
   updateUserProfile,
   googleLoginCallback,
   getMe,
-  registerStaff
+  registerStaff,
+  postLoginWithCustomerId
 } from "../controllers/account.controller.js";
 import  passport  from "../middlewares/passport.js";
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
@@ -21,6 +22,8 @@ import {upload} from "../middlewares/upload.middleware.js"
 import { verifyAdmin } from "../middlewares/auth.middleware.js";
 
 const accountApi = Router();
+accountApi.post("/login-with-customer", postLoginWithCustomerId);
+
 
 accountApi.post("/register", registerLocal);
 accountApi.post("/staff-register", registerStaff);
@@ -43,7 +46,7 @@ accountApi.post("/reset-password-request", requestPasswordReset);
 accountApi.post("/reset-password", resetPassword);
 
 accountApi.put('/update-password', jwtAuthentication, updatePassword);
-accountApi.put("/update-avt",upload.single("avatar"), jwtAuthentication, changeAvatar);
+accountApi.put("/update-avt",upload.single("avatar"), changeAvatar);
 accountApi.get("/profile", jwtAuthentication, getUserProfile);
 accountApi.put("/update-profile", jwtAuthentication, updateUserProfile);
 

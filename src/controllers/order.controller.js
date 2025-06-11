@@ -1,5 +1,3 @@
-
-
 import {
   createOrder,
   getAllOrders,
@@ -15,7 +13,7 @@ const OrderController = {
   async create(req, res) {
     console.log('[OrderController.create] req.body:', JSON.stringify(req.body, null, 2));
     try {
-      const order = await createOrder(req.body);
+      const order = await createOrder(req.body); // table_ids xử lý trong service
       console.log('[OrderController.create] Order created successfully:', JSON.stringify(order, null, 2));
 
       // 📤 Phát socket cho tất cả client
@@ -32,7 +30,7 @@ const OrderController = {
   // 📋 Lấy tất cả đơn hàng
   async getAll(req, res) {
     try {
-      const orders = await getAllOrders();
+      const orders = await getAllOrders(); // đã include tables trong service
       res.status(200).json({ success: true, data: orders });
     } catch (error) {
       console.error('[Get All Orders]', error.message);
@@ -43,7 +41,7 @@ const OrderController = {
   // 🔍 Lấy đơn hàng theo ID
   async getById(req, res) {
     try {
-      const order = await getOrderById(req.params.id);
+      const order = await getOrderById(req.params.id); // đã include tables trong service
       res.status(200).json({ success: true, data: order });
     } catch (error) {
       console.error('[Get Order By ID]', error.message);
@@ -61,7 +59,7 @@ const OrderController = {
     }
 
     try {
-      const updatedOrder = await updateOrder(id, updates);
+      const updatedOrder = await updateOrder(id, updates); // xử lý table_ids trong service
 
       // 📤 Gửi socket cập nhật đơn hàng
       const senderSocketId = req.headers['x-socket-id'];
@@ -114,4 +112,3 @@ const OrderController = {
 };
 
 export default OrderController;
-

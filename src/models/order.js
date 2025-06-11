@@ -9,11 +9,7 @@ class Order extends Model {
       onDelete: 'CASCADE',
     });
 
-    Order.belongsTo(models.Table, {
-      foreignKey: 'table_id',
-      as: 'table',
-      onDelete: 'SET NULL',
-    });
+
 
     Order.belongsTo(models.Voucher, {
       foreignKey: 'voucher_id',
@@ -27,6 +23,11 @@ class Order extends Model {
       onDelete: 'CASCADE',
        hooks: true,
     });
+    Order.belongsToMany(models.Table, {
+  through: "OrderTable",
+  as: "tables",
+  foreignKey: "order_id",
+});
   }
 }
 
@@ -41,10 +42,7 @@ Order.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-    table_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-    },
+
     voucher_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -54,9 +52,14 @@ Order.init(
       allowNull: true,
     },
     order_type: {
-      type: DataTypes.ENUM('dine-in', 'take-away', 'delivery'),
+  type: DataTypes.ENUM('reservation', 'dine-in', 'take-away', 'delivery'),
       defaultValue: 'dine-in',
     },
+    reservation_time: {
+  type: DataTypes.DATE,
+  allowNull: true,
+  comment: 'Thời gian khách đặt bàn trước (dùng cho order_type = reservation)',
+},
     order_date: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

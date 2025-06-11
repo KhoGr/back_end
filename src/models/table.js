@@ -3,10 +3,13 @@ import { sequelize } from '../config/database.js';
 
 class Table extends Model {
   static associate(models) {
-    Table.hasMany(models.Order, {
+
+
+    // N-N quan hệ nhiều bàn cho 1 order
+    Table.belongsToMany(models.Order, {
+      through: 'OrderTable',
+      as: 'multi_orders', // ⚠️ tên khác để phân biệt
       foreignKey: 'table_id',
-      as: 'orders',
-      onDelete: 'SET NULL',
     });
   }
 }
@@ -21,7 +24,6 @@ Table.init(
     table_number: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: false,
     },
     floor: {
       type: DataTypes.INTEGER,

@@ -62,7 +62,6 @@ async getLevelForSpentAmount(totalSpent) {
     }
   }
 
-  // Nếu không đủ điều kiện mức nào
   return null;
 }
 

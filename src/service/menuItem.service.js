@@ -1,8 +1,6 @@
-// service/menuItem.service.js
 import { Op } from 'sequelize';
 import MenuItem from '../models/menu_items.js';
 import Category from '../models/category.js';
-
 
 const menuItemService = {
   async createMenuItem(data) {
@@ -10,7 +8,6 @@ const menuItemService = {
     if (!category) {
       throw new Error('Invalid category_id');
     }
-
     return await MenuItem.create(data);
   },
 
@@ -24,18 +21,24 @@ const menuItemService = {
     });
   },
 
-  async getMenuItemById(id) {
-    return await MenuItem.findByPk(id, {
+  async getMenuItemById(item_id) {
+    console.log("Lấy menu item với item_id:", item_id); 
+
+    const item = await MenuItem.findOne({
+      where: { item_id },
       include: {
         model: Category,
         as: 'category',
         attributes: ['id', 'name'],
       },
     });
+
+    console.log("Kết quả truy vấn item:", item); // ✅ Log để debug
+    return item;
   },
 
-  async updateMenuItem(id, data) {
-    const item = await MenuItem.findByPk(id);
+  async updateMenuItem(item_id, data) {
+    const item = await MenuItem.findOne({ where: { item_id } });
     if (!item) return null;
 
     if (data.category_id) {
@@ -49,9 +52,10 @@ const menuItemService = {
     return item;
   },
 
-  async deleteMenuItem(id) {
-    const item = await MenuItem.findByPk(id);
+  async deleteMenuItem(item_id) {
+    const item = await MenuItem.findOne({ where: { item_id } });
     if (!item) return null;
+
     await item.destroy();
     return { message: 'Menu item deleted successfully' };
   },
@@ -79,22 +83,23 @@ const menuItemService = {
       },
     });
   },
+
   async updateMenuItemImage(item_id, imageUrl) {
     try {
-      const item = await MenuItem.findByPk(item_id);
+      const item = await MenuItem.findOne({ where: { item_id } });
       if (!item) {
         throw new Error("Không tìm thấy món ăn.");
       }
 
-    item.image_url = imageUrl;
-    await item.save();
+      item.image_url = imageUrl;
+      await item.save();
 
-    return item;
-  } catch (error) {
-    console.error("Lỗi khi cập nhật ảnh món ăn:", error);
-    throw new Error("Không thể cập nhật ảnh món ăn.");
+      return item;
+    } catch (error) {
+      console.error("Lỗi khi cập nhật ảnh món ăn:", error);
+      throw new Error("Không thể cập nhật ảnh món ăn.");
+    }
   }
-}
 };
 
 export default menuItemService;

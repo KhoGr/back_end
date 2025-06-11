@@ -14,6 +14,11 @@ static associate(models) {
     as: 'staffProfile',
     onDelete: 'CASCADE',
   });
+  User.hasOne(models.Customer, {
+  foreignKey: 'user_id',
+  as: 'customer_info', // 💥 Alias này phải trùng với `include` trong getMe
+  onDelete: 'CASCADE',
+});
 }
 }
 

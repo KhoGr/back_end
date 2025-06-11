@@ -31,6 +31,117 @@ import { uploadImage } from "../service/common.service.js";
 import jwt from "jsonwebtoken";
 import { createCustomer } from "../service/customer.service.js";
 import { createStaff } from "../service/staff.service.js";
+import User from "../models/user.js";
+import Customer from "../models/customer.js";
+
+export const postLoginWithCustomerId = async (req, res) => {
+  try {
+    const email = req.body.email?.toLowerCase();
+    const { password } = req.body;
+
+    const account = await findAccount(email);
+    if (!account) {
+      return res.status(406).json({ message: "Tài khoản không tồn tại" });
+    }
+
+    if (!account.is_verified) {
+      return res.status(403).json({
+        message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, account.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Mật khẩu không đúng" });
+    }
+
+    // Lấy thông tin user
+    const user = await User.findOne({
+      where: { account_id: account.id },
+      include: [
+        {
+          model: Customer,
+          as: "customer_info",
+          attributes: ["customer_id", "vip_id", "loyalty_point", "total_spent"],
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
+
+    const token = await encodedToken(account);
+
+    res.cookie("jwt_token", token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    });
+
+    return res.status(200).json({
+      message: "Đăng nhập thành công",
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      user: {
+        user_id: user.user_id,
+        email: account.email,
+        name: user.name,
+        username: user.username,
+        phone: user.phone,
+        address: user.address,
+        avatar: user.avatar,
+        is_verified: account.is_verified,
+        provider: account.provider,
+        role: user.role,
+        customer: user.customer_info ?? null, // nếu có
+      },
+    });
+  } catch (error) {
+    console.error("POST LOGIN W/ CUSTOMER_ID ERROR:", error);
+    return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
+  }
+};
+
+//login
+export const postLogin = async (req, res) => {
+  try {
+    const email = req.body.email?.toLowerCase();
+    const { password } = req.body;
+
+    const account = await findAccount(email);
+    if (!account) {
+      return res.status(406).json({ message: "Tài khoản không tồn tại" });
+    }
+
+    if (!account.is_verified) {
+      return res.status(403).json({
+        message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, account.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Mật khẩu không đúng" });
+    }
+    // set cookie with jwt
+
+    const token = await encodedToken(account);
+
+    res.cookie("jwt_token", token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000), // Cookie hết hạn sau 1 ngày
+    });
+
+    return res.status(200).json({
+      message: "Đăng nhập thành công",
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    });
+  } catch (error) {
+    console.error("POST LOGIN ERROR: ", error);
+    return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
+  }
+};
 
 
 export const registerLocal = async (req, res) => {
@@ -206,46 +317,7 @@ export const verifyAccount = async (req, res) => {
   }
 };
 
-//login
-export const postLogin = async (req, res) => {
-  try {
-    const email = req.body.email?.toLowerCase();
-    const { password } = req.body;
 
-    const account = await findAccount(email);
-    if (!account) {
-      return res.status(406).json({ message: "Tài khoản không tồn tại" });
-    }
-
-    if (!account.is_verified) {
-      return res.status(403).json({
-        message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, account.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Mật khẩu không đúng" });
-    }
-    // set cookie with jwt
-
-    const token = await encodedToken(account);
-
-    res.cookie("jwt_token", token, {
-      httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000), // Cookie hết hạn sau 1 ngày
-    });
-
-    return res.status(200).json({
-      message: "Đăng nhập thành công",
-      token,
-      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
-    });
-  } catch (error) {
-    console.error("POST LOGIN ERROR: ", error);
-    return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
-  }
-};
 //adminlogin
 export const adminLogin = async (req, res) => {
   try {
@@ -488,33 +560,27 @@ export const updateUserProfile = async (req, res) => {
 };
 
 ////////////////////////////////////
-
 export const googleLoginCallback = async (req, res) => {
   try {
     if (!req.user) {
       console.log("Google authentication failed");
-
       return res.status(401).json({ message: "Google authentication failed" });
     }
 
     const account = req.user;
-
-    // Tạo JWT token với cùng cách như postLogin (sử dụng encodedToken)
     const token = await encodedToken(account);
-    console
 
-    // Set cookie giống postLogin
-    const expiresIn = 7 * 24 * 3600 * 1000; // 7 ngày
+    const expiresAt = new Date(Date.now() + 7 * 24 * 3600 * 1000); // 7 ngày
+
     res.cookie("jwt_token", token, {
       httpOnly: true,
-      expires: new Date(Date.now() + expiresIn),
+      expires: expiresAt,
     });
-    console.log("Redirecting to:", `http://localhost:5173/google-success?token=${token}&tokenExpires=${Date.now() + expiresIn}`);
 
+    console.log("Redirecting to:", `http://localhost:8080/google-success?token=${token}&tokenExpires=${expiresAt.toISOString()}`);
 
-    // Redirect kèm token và thời gian hết hạn (nếu cần phía FE biết)
     return res.redirect(
-      `http://localhost:5173/google-success?token=${token}&tokenExpires=${Date.now() + expiresIn}`
+      `http://localhost:8080/google-success?token=${token}&tokenExpires=${encodeURIComponent(expiresAt.toISOString())}`
     );
   } catch (error) {
     console.error("Lỗi khi xử lý callback Google:", error);
@@ -522,27 +588,48 @@ export const googleLoginCallback = async (req, res) => {
   }
 };
 
-///////////////////
 export const getMe = async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
+
     }
-    console.log("Get /me chạy thành công");
+    
+
+    // Lấy user và include thông tin customer (nếu có)
+    const user = await User.findOne({
+      where: { user_id: req.user.id },
+      attributes: {
+        exclude: ["created_at", "updated_at"],
+      },
+      include: [
+        {
+          model: Customer,
+          as: "customer_info", // đúng alias trong associate
+          attributes: ["customer_id", "vip_id", "loyalty_point", "total_spent"],
+          required: false, // Không bắt buộc phải có customer
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng" });
+    }
+
     return res.status(200).json({
       success: true,
       message: "Get Me chạy thành công",
       user: {
-        id: req.user.id,
-        email: req.user.email,
-        name: req.user.name,
-        username: req.user.username,
-        phone: req.user.phone,
-        address: req.user.address,
-        is_verified: req.user.is_verified,
-        avatar: req.user.avatar,
-        provider: req.user.provider,
-        role: req.user.role,
+        user_id: user.user_id,
+        name: user.name,
+        username: user.username,
+        phone: user.phone,
+        address: user.address,
+        is_verified: user.is_verified,
+        avatar: user.avatar,
+        provider: user.provider,
+        role: user.role,
+        customer: user.customer_info || null,
       },
     });
   } catch (error) {
@@ -555,20 +642,32 @@ export const getMe = async (req, res) => {
 
 export const changeAvatar = async (req, res) => {
   try {
-    const { username } = req.body;
+    const userId = req.body.user_id;; // Lấy userId từ middleware xác thực
     const file = req.file;
 
+    console.log(">>> Bắt đầu changeAvatar");
+    console.log("User ID:", userId);
+    console.log("File nhận được:", file);
+
+    if (!userId) {
+      return res.status(400).json({ error: "Không xác định được người dùng." });
+    }
+
     if (!file) {
+      console.log("Không có file được upload.");
       return res.status(400).json({ error: "Vui lòng chọn ảnh" });
     }
 
     // Upload ảnh lên Cloudinary
     const avatarUrl = await uploadImage(file.path, "avatars");
+    console.log("Đường dẫn ảnh sau khi upload:", avatarUrl);
 
     // Cập nhật avatar trong DB bằng service
-    const updatedUser = await updateUserAvatar(username, avatarUrl);
+    const updatedUser = await updateUserAvatar(userId, avatarUrl);
+    console.log("Kết quả updateUserAvatar:", updatedUser);
 
     if (!updatedUser) {
+      console.log("Không tìm thấy user trong DB.");
       return res.status(404).json({ error: "Không tìm thấy user!" });
     }
 
@@ -577,6 +676,7 @@ export const changeAvatar = async (req, res) => {
       avatar: updatedUser.avatar,
     });
   } catch (error) {
+    console.error("Lỗi trong changeAvatar:", error);
     return res.status(500).json({ error: error.message });
   }
 };

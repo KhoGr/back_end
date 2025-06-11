@@ -212,18 +212,22 @@ export const uploadAvatar = async (filePath, username) => {
     throw new Error(error.message);
   }
 };
-
-export const updateUserAvatar = async (username, avatarUrl) => {
+export const updateUserAvatar = async (userId, avatarUrl) => {
   try {
-    // Tìm user trước
-    const user = await User.findOne({ username });
+    console.log(">> Tìm user với user_id:", userId);
+
+    const user = await User.findOne({ where: { user_id: userId } });
     if (!user) {
+      console.error(">> Không tìm thấy user.");
       throw new Error("Người dùng không tồn tại.");
     }
 
-    // Cập nhật avatar
+    console.log(">> User tìm được:", user);
+
     user.avatar = avatarUrl;
     await user.save();
+
+    console.log(">> Đã cập nhật avatar thành công:", avatarUrl);
 
     return user;
   } catch (error) {
