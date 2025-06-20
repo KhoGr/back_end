@@ -6,6 +6,7 @@ import {
   deleteOrder,
   searchOrders,
   calculateTotalAmount,
+  getOrdersByCustomerId
 } from '../service/order.service.js';
 
 const OrderController = {
@@ -109,6 +110,25 @@ const OrderController = {
       res.status(400).json({ success: false, message: error.message });
     }
   },
+async getByCustomerId(req, res) {
+  try {
+    const { customer_id  } = req.params;
+
+    console.log("[GetByCustomerId] customerId param:", customer_id, "Type:", typeof customer_id );
+
+    if (!customer_id || isNaN(Number(customer_id))) {
+      console.warn("[GetByCustomerId] ❌ Invalid customer ID:", customer_id );
+      return res.status(400).json({ success: false, message: 'Invalid customer ID' });
+    }
+
+    const orders = await getOrdersByCustomerId(Number(customer_id ));
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    console.error('[GetByCustomerId] ❌ Error:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+},
+
 };
 
 export default OrderController;

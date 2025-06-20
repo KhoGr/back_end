@@ -26,5 +26,7 @@ orderAPI.patch('/:id/recalculate', jwtAuthentication, verifyAdmin, OrderControll
 
 // ❌ Xoá đơn hàng
 orderAPI.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
+orderAPI.get('/customer/:customer_id', jwtAuthentication, OrderController.getByCustomerId); // <-- ✅ mới thêm
+
 
 export default orderAPI;

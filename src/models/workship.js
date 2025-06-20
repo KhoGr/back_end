@@ -55,7 +55,7 @@ WorkShift.init(
   },
   {
     sequelize,
-    tableName: 'WorkShifts',
+    tableName: 'workshifts',
     modelName: 'WorkShift',
     timestamps: true,
     underscored: true,

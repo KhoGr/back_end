@@ -34,7 +34,6 @@ export const attendanceService = {
     });
   },
 
-  // Cập nhật điểm danh
 create: async (data) => {
   const {
     staff_id,

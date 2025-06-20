@@ -15,7 +15,11 @@ export const createOrder = async (data) => {
     throw new Error("Reservation order must have a reservation_time.");
   }
 
-  const tableIds = data.table_ids || []; // expects [id, id]
+  if (data.order_type === 'delivery' && !data.delivery_address) {
+    throw new Error("Delivery order must have a delivery_address.");
+  }
+
+  const tableIds = data.table_ids || [];
   delete data.table_ids;
 
   const order = await Order.create(data, {
@@ -49,6 +53,7 @@ export const createOrder = async (data) => {
   return order;
 };
 
+
 export const updateOrder = async (id, updates) => {
   const order = await Order.findByPk(id);
   if (!order) throw new Error("Order not found");
@@ -58,12 +63,15 @@ export const updateOrder = async (id, updates) => {
   const tableIds = updates.table_ids || [];
   delete updates.table_ids;
 
-  Object.assign(order, updates);
-
-  if (order.order_type === "reservation" && !order.reservation_time) {
+  if (updates.order_type === "reservation" && !updates.reservation_time) {
     throw new Error("Reservation order must have a reservation_time.");
   }
 
+  if (updates.order_type === "delivery" && !updates.delivery_address) {
+    throw new Error("Delivery order must have a delivery_address.");
+  }
+
+  Object.assign(order, updates);
   await order.save();
 
   if (tableIds.length > 0) {
@@ -101,6 +109,7 @@ export const updateOrder = async (id, updates) => {
 
   return order;
 };
+
 
 export const deleteOrder = async (id) => {
   const order = await Order.findByPk(id, {
@@ -269,4 +278,53 @@ export const searchOrders = async (query) => {
     ],
     order: [["order_date", "DESC"]],
   });
+};
+export const getOrdersByCustomerId = async (customer_id ) => {
+  console.log("[Service] 🔍 Fetching orders for customer_id:", customer_id );
+
+  const orders = await Order.findAll({
+    where: { customer_id: customer_id  },
+    include: [
+      {
+        model: Customer,
+        as: "customer",
+        include: [
+          {
+            model: VipLevel,
+            as: "vip_level",
+            attributes: ["id", "name"],
+          },
+          {
+            model: User,
+            as: "user_info",
+            include: [
+              {
+                model: Account,
+                as: "account",
+                attributes: ["email"],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        model: Table,
+        as: "tables",
+      },
+      {
+        model: OrderItem,
+        as: "order_items",
+        include: [
+          {
+            model: MenuItem,
+            as: "menu_item",
+          },
+        ],
+      },
+    ],
+    order: [["order_date", "DESC"]],
+  });
+
+  console.log(`[Service] ✅ Found ${orders.length} orders for customer_id: ${customer_id}`);
+  return orders;
 };

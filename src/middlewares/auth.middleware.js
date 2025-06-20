@@ -41,3 +41,21 @@ export const checkLogin=(req,res,next)=>{
     }
     next();
 }
+export const verifyCustomer = async (req, res, next) => {
+    try {
+        // Kiểm tra user đã đăng nhập chưa
+        if (!req.user) {
+            return res.status(401).json({ message: "Bạn chưa đăng nhập." });
+        }
+
+        // Kiểm tra quyền customer
+        if (req.user.role !== "customer") {
+            return res.status(403).json({ message: "Chỉ khách hàng mới có quyền truy cập." });
+        }
+
+        next(); // Nếu là customer, tiếp tục thực thi API
+    } catch (error) {
+        console.error("❌ Lỗi xác thực quyền customer:", error);
+        return res.status(500).json({ message: "Lỗi xác thực quyền khách hàng." });
+    }
+};

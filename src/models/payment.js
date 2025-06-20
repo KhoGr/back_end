@@ -1,4 +1,4 @@
-// models/payments.js
+// models/Payment.ts
 import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.js';
 
@@ -14,7 +14,7 @@ class Payment extends Model {
 
 Payment.init(
   {
-    payment_id: {
+    id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
@@ -22,36 +22,51 @@ Payment.init(
     order_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'orders',
-        key: 'order_id',
-      },
-      onDelete: 'CASCADE',
     },
     amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
-    payment_method: {
-      type: DataTypes.STRING(20),
-      allowNull: false,
-      validate: {
-        isIn: [['cash', 'card', 'momo', 'vnpay']],
-      },
+    transaction_no: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Mã giao dịch trả về từ VNPay (vnp_TransactionNo)',
     },
-    transaction_code: {
-      type: DataTypes.STRING(100),
+    bank_code: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    bank_transaction_no: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    card_type: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    pay_date: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Định dạng từ VNPay trả về: yyyyMMddHHmmss',
+    },
+    response_code: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+      comment: 'Mã phản hồi từ VNPay, 00 = thành công',
+    },
+    transaction_status: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+      comment: 'vnp_TransactionStatus',
+    },
+    checksum: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'vnp_SecureHash để đối chiếu',
     },
     status: {
-      type: DataTypes.STRING(20),
-      defaultValue: 'success',
-      validate: {
-        isIn: [['success', 'failed', 'pending']],
-      },
-    },
-    paid_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      type: DataTypes.ENUM('success', 'failed', 'pending'),
+      defaultValue: 'pending',
     },
     created_at: {
       type: DataTypes.DATE,
@@ -62,7 +77,7 @@ Payment.init(
     sequelize,
     modelName: 'Payment',
     tableName: 'payments',
-    timestamps: false, // vì đã có created_at/pai̇d_at riêng
+    timestamps: false,
     underscored: true,
   }
 );

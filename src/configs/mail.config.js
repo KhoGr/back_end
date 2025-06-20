@@ -40,7 +40,6 @@ export const sendVerificationEmail = async (email, token) => {
     <p>Nhấn vào liên kết bên dưới để xác nhận tài khoản của bạn:</p>
     <a href="${verificationUrl}" target="_blank" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Xác nhận tài khoản</a>
     <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
-        <p>${verificationUrl}</p>
 
   `;
 
@@ -52,13 +51,12 @@ export const sendVerificationEmail = async (email, token) => {
 };
 //email xác nhận mật khẩu
 export const sendResetPasswordEmail = async (email, token) => {
-  const resetPasswordUrl = `http://localhost:5173/api/account/reset-password?token=${token}`;
+  const resetPasswordUrl = `http://localhost:8080/api/account/reset-password?token=${token}`;
   const htmlContent = `
      <h2>Cung cấp lại mật khẩu!</h2>
     <p>Nhấn vào liên kết bên dưới để xác nhận  bạn muốn đổi mật khẩu:</p>
     <a href="${resetPasswordUrl}" target="_blank" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Xác nhận tài khoản</a>
     <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
-        <p>${resetPasswordUrl}</p>
   `;
   return sendEmail({
     to: email,

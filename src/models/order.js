@@ -9,8 +9,6 @@ class Order extends Model {
       onDelete: 'CASCADE',
     });
 
-
-
     Order.belongsTo(models.Voucher, {
       foreignKey: 'voucher_id',
       as: 'voucher',
@@ -21,13 +19,14 @@ class Order extends Model {
       foreignKey: 'order_id',
       as: 'order_items',
       onDelete: 'CASCADE',
-       hooks: true,
+      hooks: true,
     });
+
     Order.belongsToMany(models.Table, {
-  through: "OrderTable",
-  as: "tables",
-  foreignKey: "order_id",
-});
+      through: 'OrderTable',
+      as: 'tables',
+      foreignKey: 'order_id',
+    });
   }
 }
 
@@ -42,7 +41,6 @@ Order.init(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
-
     voucher_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -52,14 +50,24 @@ Order.init(
       allowNull: true,
     },
     order_type: {
-  type: DataTypes.ENUM('reservation', 'dine-in', 'take-away', 'delivery'),
+      type: DataTypes.ENUM('reservation', 'dine-in', 'take-away', 'delivery'),
       defaultValue: 'dine-in',
     },
     reservation_time: {
-  type: DataTypes.DATE,
-  allowNull: true,
-  comment: 'Thời gian khách đặt bàn trước (dùng cho order_type = reservation)',
-},
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Thời gian khách đặt bàn trước (dùng cho order_type = reservation)',
+    },
+    delivery_address: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Địa chỉ giao hàng (chỉ dùng khi order_type là delivery)',
+    },
+    phone: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      comment: 'Số điện thoại người đặt hoặc người nhận',
+    },
     order_date: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,

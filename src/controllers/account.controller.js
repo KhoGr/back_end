@@ -33,6 +33,83 @@ import { createCustomer } from "../service/customer.service.js";
 import { createStaff } from "../service/staff.service.js";
 import User from "../models/user.js";
 import Customer from "../models/customer.js";
+import Staff from "../models/staff.js";
+
+export const postLoginWithStaffId = async (req, res) => {
+  try {
+    const email = req.body.email?.toLowerCase();
+    const { password } = req.body;
+
+    const account = await Account.findOne({ where: { email } });
+    if (!account) {
+      return res.status(406).json({ message: 'Tài khoản không tồn tại' });
+    }
+
+    if (!account.is_verified) {
+      return res.status(403).json({
+        message: 'Tài khoản chưa được xác minh. Vui lòng kiểm tra email.',
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, account.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Mật khẩu không đúng' });
+    }
+
+    const user = await User.findOne({
+      where: { account_id: account.id },
+      include: [
+        {
+          model: Staff,
+          as: 'staffProfile',
+          attributes: [
+            'staff_id',
+            'position',
+            'salary',
+            'working_type',
+            'joined_date',
+            'note',
+          ],
+        },
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+    }
+
+    const token = await encodedToken(account);
+
+    res.cookie('jwt_token', token, {
+      httpOnly: true,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+    });
+
+    return res.status(200).json({
+      message: 'Đăng nhập thành công',
+      token,
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      user: {
+        user_id: user.user_id,
+        email: account.email,
+        name: user.name,
+        username: user.username,
+        phone: user.phone,
+        address: user.address,
+        avatar: user.avatar,
+        is_verified: account.is_verified,
+        provider: account.provider,
+        role: user.role,
+        staff: user.staffProfile ,
+        staff_id: user.staffProfile?.staff_id ,
+      },
+    });
+  } catch (error) {
+    console.error('POST LOGIN W/ STAFF_ID ERROR:', error);
+    return res.status(503).json({ message: 'Lỗi dịch vụ, thử lại sau' });
+  }
+};
+
 
 export const postLoginWithCustomerId = async (req, res) => {
   try {
@@ -102,15 +179,19 @@ export const postLoginWithCustomerId = async (req, res) => {
   }
 };
 
-//login
+// login
 export const postLogin = async (req, res) => {
   try {
     const email = req.body.email?.toLowerCase();
     const { password } = req.body;
 
+    console.log("🟡 [POST LOGIN] Nhận request body:", req.body);
+
     const account = await findAccount(email);
+    console.log("🟢 [POST LOGIN] Tìm thấy tài khoản:", account);
+
     if (!account) {
-      return res.status(406).json({ message: "Tài khoản không tồn tại" });
+      return res.status(401).json({ message: "Tài khoản không tồn tại" });
     }
 
     if (!account.is_verified) {
@@ -123,13 +204,12 @@ export const postLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({ message: "Mật khẩu không đúng" });
     }
-    // set cookie with jwt
 
     const token = await encodedToken(account);
 
     res.cookie("jwt_token", token, {
       httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000), // Cookie hết hạn sau 1 ngày
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000), // 7 ngày
     });
 
     return res.status(200).json({
@@ -138,10 +218,11 @@ export const postLogin = async (req, res) => {
       expires: new Date(Date.now() + 7 * 24 * 3600 * 1000),
     });
   } catch (error) {
-    console.error("POST LOGIN ERROR: ", error);
+    console.error("🔴 [POST LOGIN ERROR]: ", error);
     return res.status(503).json({ message: "Lỗi dịch vụ, thử lại sau" });
   }
 };
+
 
 
 export const registerLocal = async (req, res) => {
@@ -587,16 +668,12 @@ export const googleLoginCallback = async (req, res) => {
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 export const getMe = async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
-
     }
-    
 
-    // Lấy user và include thông tin customer (nếu có)
     const user = await User.findOne({
       where: { user_id: req.user.id },
       attributes: {
@@ -605,9 +682,15 @@ export const getMe = async (req, res) => {
       include: [
         {
           model: Customer,
-          as: "customer_info", // đúng alias trong associate
+          as: "customer_info",
           attributes: ["customer_id", "vip_id", "loyalty_point", "total_spent"],
-          required: false, // Không bắt buộc phải có customer
+          required: false,
+        },
+        {
+          model: Staff,
+          as: "staffProfile",
+          attributes: ["staff_id", "position", "salary", "working_type", "note"],
+          required: false,
         },
       ],
     });
@@ -630,6 +713,7 @@ export const getMe = async (req, res) => {
         provider: user.provider,
         role: user.role,
         customer: user.customer_info || null,
+        staff: user.staffProfile || null,
       },
     });
   } catch (error) {

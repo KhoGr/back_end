@@ -14,13 +14,26 @@ export const isExistAccount = async (email) => {
     throw error;
   }
 };
+
 export const findAccount = async (email) => {
   try {
-    return await Account.findOne({ where: { email } });
+    console.log("🔍 Đang tìm account với email:", email);
+
+    // Test kết nối: lấy toàn bộ account (tối đa 5 dòng)
+    const allAccounts = await Account.findAll({ limit: 5 });
+    console.log("📦 Sample tài khoản từ DB:", allAccounts);
+
+    // Tìm tài khoản theo email
+    const account = await Account.findOne({ where: { email } });
+    console.log("✅ Kết quả tìm account:", account);
+
+    return account;
   } catch (error) {
-    console.log("ko tìm thấy tài khoản");
+    console.error("❌ Lỗi trong findAccount:", error);
+    return null;
   }
 };
+
 
 // Tạo tài khoản mới
 export const createAccount = async (

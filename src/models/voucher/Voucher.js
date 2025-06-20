@@ -60,7 +60,7 @@ Voucher.init(
   {
     sequelize,
     modelName: 'Voucher',
-    tableName: 'Vouchers',
+    tableName: 'vouchers',
     timestamps: true,
     underscored: true,
   }

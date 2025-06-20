@@ -56,7 +56,7 @@ Payroll.init(
   },
   {
     sequelize,
-    tableName: 'Payrolls',
+    tableName: 'payrolls',
     modelName: 'Payroll',
     timestamps: true,
     underscored: true,

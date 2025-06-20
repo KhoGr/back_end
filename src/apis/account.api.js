@@ -13,7 +13,8 @@ import {
   googleLoginCallback,
   getMe,
   registerStaff,
-  postLoginWithCustomerId
+  postLoginWithCustomerId,
+  postLoginWithStaffId
 } from "../controllers/account.controller.js";
 import  passport  from "../middlewares/passport.js";
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
@@ -23,6 +24,7 @@ import { verifyAdmin } from "../middlewares/auth.middleware.js";
 
 const accountApi = Router();
 accountApi.post("/login-with-customer", postLoginWithCustomerId);
+accountApi.post("/login-with-staff", postLoginWithStaffId);
 
 
 accountApi.post("/register", registerLocal);

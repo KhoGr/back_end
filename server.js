@@ -23,8 +23,10 @@ import attendanceApi from './src/apis/attendance.api.js'
 import payrollApi from './src/apis/payroll.api.js'
 import chatbotApi from './src/apis/chatbot.api.js'
 import aiModelApi from './src/apis/aiModel.api.js'
+import paymentAPI from './src/apis/payment.api.js'
 
-import { sequelize } from "./src/config/database.js";
+
+import { sequelize,connectDB } from "./src/config/database.js";
 
 dotenv.config();
 const connectedUsers = new Map();
@@ -34,7 +36,7 @@ const server = http.createServer(app); // 👈 Dùng http để tạo server
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -49,7 +51,8 @@ app.use(cors({
     process.env.CLIENT_URL,                    // domain chính (frontend production/dev)
     'http://localhost:5173',                   // dev frontend
     'http://localhost:8080',                   // dev frontend
-    'https://aa3c-14-177-79-8.ngrok-free.app' // link ngrok bạn đang dùng
+    'http://localhost:8081',                   // dev frontend
+    
   ],
   credentials: true
 }));app.use(
@@ -71,17 +74,7 @@ app.use((req, res, next) => {
 });
 
 // Database
-const checkDatabaseConnection = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("✅ Đã kết nối database thành công!");
-  } catch (error) {
-    console.error("❌ Lỗi kết nối database:", error);
-    process.exit(1);
-  }
-};
-
-checkDatabaseConnection();
+await connectDB();
 
 // Routes
 app.use("/api/account", accountApi);
@@ -100,6 +93,7 @@ app.use("/api/attendance", attendanceApi);
 app.use("/api/payroll", payrollApi); 
 app.use("/api/chatbot", chatbotApi); 
 app.use("/api/aimodel", aiModelApi); 
+app.use("/api/payment", paymentAPI); 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);

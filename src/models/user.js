@@ -77,8 +77,8 @@ User.init(
   },
   {
     sequelize,
-    tableName: "Users",
-    modelName: "User",
+    tableName: "users",
+    modelName: "user",
     timestamps: true,
     underscored: true,
   }

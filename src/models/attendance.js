@@ -66,7 +66,7 @@ Attendance.init(
   },
   {
     sequelize,
-    tableName: 'Attendances',
+    tableName: 'attendances',
     modelName: 'Attendance',
     timestamps: true,
     underscored: true,

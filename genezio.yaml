@@ -1,0 +1,17 @@
+yamlVersion: 3
+name: my-node-backend
+backend:
+    path: .
+    language:
+        name: js
+        runtime: nodejs20.x
+    functions:
+        - name: express
+          path: .
+          entry: index.mjs
+          type: httpServer
+    scripts:
+        deploy:
+            - npm install
+        local:
+            - npm install
