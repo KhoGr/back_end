@@ -52,7 +52,8 @@ app.use(cors({
     'http://localhost:5173',                   // dev frontend
     'http://localhost:8080',                   // dev frontend
     'http://localhost:8081',                   // dev frontend
-    'https://api.vnpt-hn.io.vn'
+    'https://api.vnpt-hn.io.vn',
+    'https://admin.vnpt-hn.io.vn/'
     
   ],
   credentials: true
