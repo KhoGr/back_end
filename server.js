@@ -36,7 +36,7 @@ const server = http.createServer(app); // 👈 Dùng http để tạo server
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081"],
+    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081","https://api.vnpt-hn.io.vn/"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -52,6 +52,7 @@ app.use(cors({
     'http://localhost:5173',                   // dev frontend
     'http://localhost:8080',                   // dev frontend
     'http://localhost:8081',                   // dev frontend
+    'https://api.vnpt-hn.io.vn'
     
   ],
   credentials: true
