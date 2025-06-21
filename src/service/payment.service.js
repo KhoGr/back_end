@@ -19,8 +19,8 @@ import Order from '../models/order.js';
 const vnp_TmnCode = process.env.VNP_TMN_CODE;
 const vnp_HashSecret = process.env.VNP_HASH_SECRET;
 const vnp_Url = process.env.VNP_URL;
-const vnp_ReturnUrl = process.env.VNP_RETURN_URL;
-const vnp_IpnUrl = process.env.VNP_IPN_URL;
+const vnp_ReturnUrl = 'https://adminui2.vercel.app/vnpay-return';
+const vnp_IpnUrl = 'https://api.vnpt-hn.io.vn/api/payment/vnpay-ipn';
 
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
   console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${ipAddress}`);
