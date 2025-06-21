@@ -1,7 +1,32 @@
 import models from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, fn, col } from "sequelize";
 
 const { Payroll, Staff, User, Account,Attendance } = models;
+export const calculateMonthlyPayroll = async (month) => {
+  if (!/^\d{4}-\d{2}$/.test(month)) {
+    throw new Error("Invalid month format. Expected YYYY-MM");
+  }
+
+  const startDate = new Date(`${month}-01`);
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + 1); // đầu tháng kế tiếp
+
+  const result = await Payroll.findOne({
+    attributes: [[fn("SUM", col("total_salary")), "total_payroll"]],
+    where: {
+      status: 'paid',
+      period_start: {
+        [Op.gte]: startDate,
+        [Op.lt]: endDate,
+      },
+    },
+    raw: true,
+  });
+
+  const total = parseFloat(result.total_payroll || 0);
+  console.log(`[Payroll] ✅ Tổng lương đã trả cho ${month}: ${total}`);
+  return total;
+};
 
 export const payrollService = {
 async generatePayrollForStaff(staff_id, period_start, period_end) {

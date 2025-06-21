@@ -24,7 +24,7 @@ import payrollApi from './src/apis/payroll.api.js'
 import chatbotApi from './src/apis/chatbot.api.js'
 import aiModelApi from './src/apis/aiModel.api.js'
 import paymentAPI from './src/apis/payment.api.js'
-
+import monthlyFinanceApi from './src/apis/monthlyFinance.api.js'
 
 import { sequelize,connectDB } from "./src/config/database.js";
 
@@ -94,6 +94,7 @@ app.use("/api/payroll", payrollApi);
 app.use("/api/chatbot", chatbotApi); 
 app.use("/api/aimodel", aiModelApi); 
 app.use("/api/payment", paymentAPI); 
+app.use("/api/monthlyFinance", monthlyFinanceApi); 
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);

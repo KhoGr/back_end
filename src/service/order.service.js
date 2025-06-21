@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, fn, col} from "sequelize";
 import Order from "../models/order.js";
 import OrderItem from "../models/order_item.js";
 import Customer from "../models/customer.js";
@@ -9,6 +9,37 @@ import MenuItem from "../models/menu_items.js";
 import VipLevel from "../models/MembershipTier.js";
 import OrderTable from "../models/order_table.js";
 import { updateCustomerSpentAndVip } from "../service/customer.service.js";
+
+
+export const calculateMonthlyRevenue = async (monthString) => {
+  if (!/^\d{4}-\d{2}$/.test(monthString)) {
+    console.error(`[Revenue] ❌ Invalid month format: ${monthString}`);
+    throw new Error("Invalid month format. Expected YYYY-MM");
+  }
+
+  const startDate = new Date(`${monthString}-01`);
+  const endDate = new Date(startDate);
+  endDate.setMonth(endDate.getMonth() + 1);
+
+  console.log(`[Revenue] 📅 Calculating revenue from ${startDate.toISOString()} to ${endDate.toISOString()}`);
+
+  const result = await Order.findOne({
+    attributes: [[fn("SUM", col("final_amount")), "total_revenue"]],
+    where: {
+      status: "completed",
+      order_date: {
+        [Op.gte]: startDate,
+        [Op.lt]: endDate,
+      },
+    },
+    raw: true,
+  });
+
+  const total = parseFloat(result.total_revenue || 0);
+  console.log(`[Revenue] ✅ Total revenue for ${monthString}: ${total}`);
+
+  return total;
+};
 
 export const createOrder = async (data) => {
   if (data.order_type === 'reservation' && !data.reservation_time) {

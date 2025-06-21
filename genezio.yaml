@@ -8,7 +8,7 @@ backend:
     functions:
         - name: express
           path: .
-          entry: index.mjs
+          entry: server.js
           type: httpServer
     scripts:
         deploy:
