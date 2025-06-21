@@ -19,7 +19,7 @@ orderAPI.post('/', jwtAuthentication, OrderController.create);
 orderAPI.get('/:id', jwtAuthentication, OrderController.getById);
 
 // 🔁 Cập nhật đơn hàng (status, is_paid, payment_method,...)
-orderAPI.patch('/:id', jwtAuthentication, verifyAdmin, OrderController.update);
+orderAPI.patch('/:id', jwtAuthentication, OrderController.update);
 
 // 🔄 Tính lại tổng tiền đơn hàng
 orderAPI.patch('/:id/recalculate', jwtAuthentication, verifyAdmin, OrderController.recalculateTotal);

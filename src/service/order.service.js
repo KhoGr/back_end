@@ -11,6 +11,63 @@ import OrderTable from "../models/order_table.js";
 import { updateCustomerSpentAndVip } from "../service/customer.service.js";
 
 
+
+export const updateOrder = async (id, updates) => {
+  const order = await Order.findByPk(id);
+  if (!order) throw new Error("Order not found");
+
+  const prevStatus = order.status;
+
+  const tableIds = updates.table_ids || [];
+  delete updates.table_ids;
+
+  if (updates.order_type === "reservation" && !updates.reservation_time) {
+    throw new Error("Reservation order must have a reservation_time.");
+  }
+
+  if (updates.order_type === "delivery" && !updates.delivery_address) {
+    throw new Error("Delivery order must have a delivery_address.");
+  }
+
+  Object.assign(order, updates);
+  await order.save();
+
+  if (tableIds.length > 0) {
+    const tables = await Table.findAll({ where: { table_id: tableIds } });
+    await order.setTables(tables);
+    if (order.order_type === "reservation") {
+      for (const table of tables) {
+        table.status = "reserved";
+        await table.save();
+      }
+    }
+  }
+
+  const hasOrderItems = await OrderItem.count({ where: { order_id: order.id } }) > 0;
+  if (hasOrderItems) {
+    await calculateTotalAmount(order.id);
+  }
+
+  const isNowCompleted = order.status === "completed";
+  const isNowPaid = order.is_paid === true;
+
+  if (isNowCompleted && isNowPaid) {
+    await updateCustomerSpentAndVip(order.customer_id);
+  }
+
+  if (order.order_type === "reservation" && prevStatus !== "completed" && order.status === "completed") {
+    const tables = await order.getTables();
+    for (const table of tables) {
+      if (table.status === "reserved") {
+        table.status = "available";
+        await table.save();
+      }
+    }
+  }
+
+  return order;
+};
+
 export const calculateMonthlyRevenue = async (monthString) => {
   if (!/^\d{4}-\d{2}$/.test(monthString)) {
     console.error(`[Revenue] ❌ Invalid month format: ${monthString}`);
@@ -79,63 +136,6 @@ export const createOrder = async (data) => {
 
   if (order.status === "completed" && order.is_paid) {
     await updateCustomerSpentAndVip(order.customer_id);
-  }
-
-  return order;
-};
-
-
-export const updateOrder = async (id, updates) => {
-  const order = await Order.findByPk(id);
-  if (!order) throw new Error("Order not found");
-
-  const prevStatus = order.status;
-
-  const tableIds = updates.table_ids || [];
-  delete updates.table_ids;
-
-  if (updates.order_type === "reservation" && !updates.reservation_time) {
-    throw new Error("Reservation order must have a reservation_time.");
-  }
-
-  if (updates.order_type === "delivery" && !updates.delivery_address) {
-    throw new Error("Delivery order must have a delivery_address.");
-  }
-
-  Object.assign(order, updates);
-  await order.save();
-
-  if (tableIds.length > 0) {
-    const tables = await Table.findAll({ where: { table_id: tableIds } });
-    await order.setTables(tables);
-    if (order.order_type === "reservation") {
-      for (const table of tables) {
-        table.status = "reserved";
-        await table.save();
-      }
-    }
-  }
-
-  const hasOrderItems = await OrderItem.count({ where: { order_id: order.id } }) > 0;
-  if (hasOrderItems) {
-    await calculateTotalAmount(order.id);
-  }
-
-  const isNowCompleted = order.status === "completed";
-  const isNowPaid = order.is_paid === true;
-
-  if (isNowCompleted && isNowPaid) {
-    await updateCustomerSpentAndVip(order.customer_id);
-  }
-
-  if (order.order_type === "reservation" && prevStatus !== "completed" && order.status === "completed") {
-    const tables = await order.getTables();
-    for (const table of tables) {
-      if (table.status === "reserved") {
-        table.status = "available";
-        await table.save();
-      }
-    }
   }
 
   return order;
