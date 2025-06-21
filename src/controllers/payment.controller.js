@@ -3,14 +3,15 @@ import paymentService from '../service/payment.service.js';
 export const createVNPayUrl = async (req, res) => {
   try {
     const { orderId } = req.params;
+    const ipAddress =
+      req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-    const order = await paymentService.createPaymentUrl({
+    const paymentUrl = await paymentService.createPaymentUrl({
       orderId,
-      amount: req.body.amount, // Nếu bạn muốn nhận amount từ FE
-      ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+      ipAddress,
     });
 
-    return res.status(200).json({ paymentUrl: order });
+    return res.status(200).json({ paymentUrl });
   } catch (error) {
     console.error('❌ createVNPayUrl error:', error.message);
     return res.status(500).json({ error: 'Không tạo được link thanh toán' });
@@ -21,7 +22,7 @@ export const handleVNPayIPN = async (req, res) => {
   try {
     const result = await paymentService.handleIPN(req.query);
 
-    // VNPay yêu cầu trả đúng định dạng code/message
+    // 🔁 VNPay yêu cầu phản hồi đúng định dạng JSON
     return res.status(200).json({
       RspCode: result.code,
       Message: result.message,

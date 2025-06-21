@@ -9,11 +9,9 @@ import Order from '../models/order.js';
 const vnp_TmnCode = process.env.VNP_TMN_CODE;
 const vnp_HashSecret = process.env.VNP_HASH_SECRET;
 const vnp_Url = process.env.VNP_URL;
-
-// 🔒 Fix cứng URL để không phụ thuộc .env
 const vnp_ReturnUrl = 'https://adminui2.vercel.app/vnpay-return';
 
-// ⏰ Hàm tạo ngày theo GMT+7
+// Hàm chuẩn hóa ngày giờ theo GMT+7
 const getVNPayDate = () => {
   const date = new Date(Date.now() + 7 * 60 * 60 * 1000); // +7h
   const pad = (n) => n.toString().padStart(2, '0');
@@ -27,9 +25,12 @@ const getVNPayDate = () => {
   );
 };
 
-// ✅ Hàm tạo URL thanh toán
+// Encode giá trị theo đúng format VNPAY
+const encodeVNPay = (str) => encodeURIComponent(str).replace(/%20/g, '+');
+
+// ✅ Tạo URL thanh toán
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
-  const realIp = ipAddress.split(',')[0].trim(); // lấy IP đầu tiên
+  const realIp = ipAddress.split(',')[0].trim();
 
   console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${realIp}`);
   const order = await Order.findByPk(orderId);
@@ -56,17 +57,14 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
     vnp_CreateDate: createDate,
   };
 
-  console.log('🔧 Raw inputData:', inputData);
-
-  // ✅ Sắp xếp tham số theo alphabet
   const sortedData = Object.keys(inputData).sort().reduce((acc, key) => {
     acc[key] = inputData[key];
     return acc;
   }, {});
 
-  // ✅ Tạo chuỗi signData không encode để hash
+  // ⚠️ Phải encode từng value theo chuẩn VNPAY
   const signData = Object.entries(sortedData)
-    .map(([key, val]) => `${key}=${val}`)
+    .map(([key, val]) => `${key}=${encodeVNPay(val)}`)
     .join('&');
 
   const secureHash = crypto
@@ -74,18 +72,15 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
     .update(signData)
     .digest('hex');
 
-  // ✅ Gắn secure hash vào query
   sortedData.vnp_SecureHash = secureHash;
 
-  // ✅ Tạo URL final (có encode đúng chuẩn)
   const finalUrl = `${vnp_Url}?${qs.stringify(sortedData, { encode: true })}`;
 
   console.log('✅ Generated payment URL:', finalUrl);
-
   return finalUrl;
 };
 
-// 📥 Xử lý IPN từ VNPay
+// 📥 Xử lý IPN từ VNPAY
 const handleIPN = async (query) => {
   console.log('📥 IPN received:', query);
 
