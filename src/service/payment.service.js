@@ -12,7 +12,6 @@ const vnp_Url = process.env.VNP_URL;
 
 // 🔒 Fix cứng URL để không phụ thuộc .env
 const vnp_ReturnUrl = 'https://adminui2.vercel.app/vnpay-return';
-const vnp_IpnUrl = 'https://api.vnpt-hn.io.vn/api/payment/vnpay-ipn';
 
 // ⏰ Hàm tạo ngày theo GMT+7
 const getVNPayDate = () => {
@@ -42,6 +41,7 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
   const txnRef = `${orderId}-${Date.now()}`;
   const createDate = getVNPayDate();
 
+  // ✅ KHÔNG đưa vnp_IpnUrl vào inputData này
   const inputData = {
     vnp_Version: '2.1.0',
     vnp_Command: 'pay',
@@ -55,7 +55,6 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
     vnp_ReturnUrl,
     vnp_IpAddr: realIp,
     vnp_CreateDate: createDate,
-    // vnp_IpnUrl,
   };
 
   console.log('🔧 Raw inputData:', inputData);
