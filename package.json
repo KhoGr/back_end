@@ -39,12 +39,14 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "passport-line": "^0.0.4",
+    "qs": "^6.14.0",
     "redis": "^4.7.0",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.2",
     "socket.io": "^4.8.1",
     "string-similarity": "^4.0.4",
-    "vite": "^6.0.11"
+    "vite": "^6.0.11",
+    "vpn": "^0.0.2"
   },
   "devDependencies": {
     "babel-register": "^6.26.0"

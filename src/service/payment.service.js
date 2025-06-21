@@ -1,64 +1,155 @@
-import Payment from '../models/payment.js'; // hoặc đường dẫn phù hợp với dự án bạn
+import qs from 'qs';
+import crypto from 'crypto';
+import dotenv from 'dotenv';
+dotenv.config();
+
+import Payment from '../models/payment.js';
 import Order from '../models/order.js';
-import { sequelize } from '../config/database.js';
 
-export const paymentService = {
-  async createFromVnpay(payload) {
-    const {
-      vnp_TxnRef,            
-      vnp_TransactionNo,     
-      vnp_ResponseCode,
-      vnp_TransactionStatus,
-      vnp_Amount,
-      vnp_BankCode,
-      vnp_CardType,
-      vnp_PayDate,
-      vnp_OrderInfo,
-    } = payload;
+const vnp_TmnCode = process.env.VNP_TMN_CODE;
+const vnp_HashSecret = process.env.VNP_HASH_SECRET;
+const vnp_Url = process.env.VNP_URL;
+const vnp_ReturnUrl = process.env.VNP_RETURN_URL;
+const vnp_IpnUrl = process.env.VNP_IPN_URL;
 
-    const orderId = parseInt(vnp_TxnRef);
+console.log('✅ ENV CONFIG:');
+console.log({
+  vnp_TmnCode,
+  vnp_HashSecret: vnp_HashSecret?.slice(0, 5) + '...', // hide for safety
+  vnp_Url,
+  vnp_ReturnUrl,
+  vnp_IpnUrl,
+});
 
-    // Kiểm tra trùng giao dịch
-    const existing = await Payment.findOne({
-      where: { transaction_no: vnp_TransactionNo }
-    });
-    if (existing) return { status: 'exists', message: 'Giao dịch đã được xử lý' };
+const createPaymentUrl = async ({ orderId, amount, ipAddress }) => {
+  console.log(`📦 Creating payment for OrderID: ${orderId} - Amount: ${amount} - IP: ${ipAddress}`);
 
-    // Giao dịch thành công (ResponseCode === '00' và TransactionStatus === '00')
-    const isSuccess = vnp_ResponseCode === '00' && vnp_TransactionStatus === '00';
-
-    // Tạo payment
-    const payment = await Payment.create({
-      order_id: orderId,
-      amount: parseFloat(vnp_Amount) / 100,
-      transaction_no: vnp_TransactionNo,
-      bank_code: vnp_BankCode,
-      card_type: vnp_CardType,
-      pay_date: convertPayDate(vnp_PayDate),
-      response_code: vnp_ResponseCode,
-      transaction_status: vnp_TransactionStatus,
-      order_info: vnp_OrderInfo,
-    });
-
-    // Nếu thành công thì cập nhật đơn hàng
-    if (isSuccess) {
-      await Order.update(
-        { is_paid: true },
-        { where: { id: orderId } }
-      );
-    }
-
-    return { status: isSuccess ? 'success' : 'fail', payment };
+  const order = await Order.findByPk(orderId);
+  if (!order) {
+    console.error('❌ Order not found');
+    throw new Error('Order not found');
   }
+
+  const date = new Date();
+  const createDate = date.toISOString().replace(/[-:TZ]/g, '').slice(0, 14);
+  const txnRef = `${orderId}-${Date.now()}`;
+
+  const inputData = {
+    vnp_Version: '2.1.0',
+    vnp_Command: 'pay',
+    vnp_TmnCode,
+    vnp_Locale: 'vn',
+    vnp_CurrCode: 'VND',
+    vnp_TxnRef: txnRef,
+    vnp_OrderInfo: `Thanh toan don hang ${orderId}`,
+    vnp_OrderType: 'other',
+    vnp_Amount: amount * 100,
+    vnp_ReturnUrl,
+    vnp_IpAddr: ipAddress,
+    vnp_CreateDate: createDate,
+    vnp_IpnUrl,
+  };
+
+  console.log('🔧 Raw inputData:', inputData);
+
+  const sortedData = Object.keys(inputData).sort().reduce((acc, key) => {
+    acc[key] = inputData[key];
+    return acc;
+  }, {});
+
+  const signData = qs.stringify(sortedData, { encode: false });
+  const secureHash = crypto
+    .createHmac('sha512', vnp_HashSecret)
+    .update(signData)
+    .digest('hex');
+
+  sortedData.vnp_SecureHash = secureHash;
+
+  const finalUrl = `${vnp_Url}?${qs.stringify(sortedData, { encode: true })}`;
+  console.log('✅ Generated payment URL:', finalUrl);
+
+  return finalUrl;
 };
 
-function convertPayDate(dateStr) {
-  // vnp_PayDate có format: YYYYMMDDHHmmss
-  const year = parseInt(dateStr.slice(0, 4));
-  const month = parseInt(dateStr.slice(4, 6)) - 1;
-  const day = parseInt(dateStr.slice(6, 8));
-  const hour = parseInt(dateStr.slice(8, 10));
-  const minute = parseInt(dateStr.slice(10, 12));
-  const second = parseInt(dateStr.slice(12, 14));
-  return new Date(year, month, day, hour, minute, second);
-}
+const handleIPN = async (query) => {
+  console.log('📥 IPN received:', query);
+
+  const vnpParams = { ...query };
+  const secureHash = vnpParams.vnp_SecureHash;
+  delete vnpParams.vnp_SecureHash;
+  delete vnpParams.vnp_SecureHashType;
+
+  const sortedParams = Object.keys(vnpParams).sort().reduce((acc, key) => {
+    acc[key] = vnpParams[key];
+    return acc;
+  }, {});
+
+  const signData = qs.stringify(sortedParams, { encode: false });
+  const hashCheck = crypto
+    .createHmac('sha512', vnp_HashSecret)
+    .update(signData)
+    .digest('hex');
+
+  console.log('🔒 SecureHash received:', secureHash);
+  console.log('🔒 SecureHash calculated:', hashCheck);
+
+  if (secureHash !== hashCheck) {
+    console.error('❌ Checksum mismatch');
+    return { code: '97', message: 'Checksum not match' };
+  }
+
+  const orderId = parseInt(vnpParams.vnp_TxnRef.split('-')[0]);
+  const amount = parseFloat(vnpParams.vnp_Amount) / 100;
+
+  const order = await Order.findByPk(orderId);
+  if (!order) {
+    console.error('❌ Order not found');
+    return { code: '01', message: 'Order not found' };
+  }
+
+  if (order.final_amount != amount) {
+    console.error('❌ Amount mismatch', {
+      expected: order.final_amount,
+      received: amount,
+    });
+    return { code: '04', message: 'Invalid amount' };
+  }
+
+  const existing = await Payment.findOne({
+    where: { transaction_no: vnpParams.vnp_TransactionNo },
+  });
+  if (existing) {
+    console.warn('⚠️ Transaction already exists:', vnpParams.vnp_TransactionNo);
+    return { code: '02', message: 'Transaction already exists' };
+  }
+
+  const paymentData = {
+    order_id: orderId,
+    amount,
+    transaction_no: vnpParams.vnp_TransactionNo,
+    bank_code: vnpParams.vnp_BankCode,
+    bank_transaction_no: vnpParams.vnp_BankTranNo,
+    card_type: vnpParams.vnp_CardType,
+    pay_date: vnpParams.vnp_PayDate,
+    response_code: vnpParams.vnp_ResponseCode,
+    transaction_status: vnpParams.vnp_TransactionStatus,
+    checksum: secureHash,
+    status: vnpParams.vnp_ResponseCode === '00' ? 'success' : 'failed',
+  };
+
+  await Payment.create(paymentData);
+  console.log('💾 Payment recorded:', paymentData);
+
+  if (vnpParams.vnp_ResponseCode === '00') {
+    order.is_paid = true;
+    await order.save();
+    console.log('✅ Order marked as paid');
+  }
+
+  return { code: '00', message: 'Success' };
+};
+
+export default {
+  createPaymentUrl,
+  handleIPN,
+};

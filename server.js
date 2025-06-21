@@ -95,8 +95,8 @@ app.use("/api/attendance", attendanceApi);
 app.use("/api/payroll", payrollApi); 
 app.use("/api/chatbot", chatbotApi); 
 app.use("/api/aimodel", aiModelApi); 
-app.use("/api/payment", paymentAPI); 
 app.use("/api/monthlyFinance", monthlyFinanceApi); 
+app.use("/api/payment", paymentAPI); 
 app.get('/', (req, res) => {
   res.send('✅ Backend API is running!');
 });

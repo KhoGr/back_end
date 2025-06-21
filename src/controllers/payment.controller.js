@@ -1,37 +1,36 @@
-import crypto from 'crypto';
-import { paymentService } from '../service/payment.service.js'
+import paymentService from '../service/payment.service.js';
 
-export const paymentController = {
-  async handleVnpayIpn(req, res) {
-    // 👇 Lấy trực tiếp từ process.env
-    const vnp_HashSecret = process.env.VNP_HASH_SECRET;
+export const createVNPayUrl = async (req, res) => {
+  try {
+    const { orderId } = req.params;
 
-    const query = req.query;
-    const vnp_SecureHash = query.vnp_SecureHash;
+    const order = await paymentService.createPaymentUrl({
+      orderId,
+      amount: req.body.amount, // Nếu bạn muốn nhận amount từ FE
+      ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+    });
 
-    const inputData = { ...query };
-    delete inputData.vnp_SecureHash;
-    delete inputData.vnp_SecureHashType;
+    return res.status(200).json({ paymentUrl: order });
+  } catch (error) {
+    console.error('❌ createVNPayUrl error:', error.message);
+    return res.status(500).json({ error: 'Không tạo được link thanh toán' });
+  }
+};
 
-    // 🔐 Tạo chuỗi dữ liệu để hash
-    const sortedKeys = Object.keys(inputData).sort();
-    const signData = sortedKeys.map(key => `${key}=${inputData[key]}`).join('&');
+export const handleVNPayIPN = async (req, res) => {
+  try {
+    const result = await paymentService.handleIPN(req.query);
 
-    // 🔒 Tính checksum từ server
-    const hmac = crypto.createHmac('sha512', vnp_HashSecret);
-    const computedHash = hmac.update(signData).digest('hex');
-
-    if (vnp_SecureHash !== computedHash) {
-      return res.status(400).json({ code: '97', message: 'Sai checksum' });
-    }
-
-    // ✅ Xử lý thanh toán
-    const result = await paymentService.createFromVnpay(inputData);
-
-    if (result.status === 'success' || result.status === 'exists') {
-      return res.status(200).json({ RspCode: '00', Message: 'Thành công' });
-    } else {
-      return res.status(200).json({ RspCode: '99', Message: 'Thất bại' });
-    }
+    // VNPay yêu cầu trả đúng định dạng code/message
+    return res.status(200).json({
+      RspCode: result.code,
+      Message: result.message,
+    });
+  } catch (error) {
+    console.error('❌ handleVNPayIPN error:', error.message);
+    return res.status(500).json({
+      RspCode: '99',
+      Message: 'Unknown error',
+    });
   }
 };
