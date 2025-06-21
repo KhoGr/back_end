@@ -1,45 +1,44 @@
 import qs from 'qs';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-dotenv.config(); // Load .env trước khi dùng biến môi trường
-
-// 🔍 Log toàn bộ biến env liên quan đến VNPay để kiểm tra
-console.log('✅ ENV CHECK:', {
-  VNP_TMN_CODE: process.env.VNP_TMN_CODE,
-  VNP_HASH_SECRET: process.env.VNP_HASH_SECRET?.slice(0, 5) + '...',
-  VNP_URL: process.env.VNP_URL,
-  VNP_RETURN_URL: process.env.VNP_RETURN_URL,
-  VNP_IPN_URL: process.env.VNP_IPN_URL,
-});
+dotenv.config();
 
 import Payment from '../models/payment.js';
 import Order from '../models/order.js';
 
-// Đọc từ biến môi trường
 const vnp_TmnCode = process.env.VNP_TMN_CODE;
 const vnp_HashSecret = process.env.VNP_HASH_SECRET;
 const vnp_Url = process.env.VNP_URL;
-const vnp_ReturnUrl = process.env.VNP_RETURN_URL;
-const vnp_IpnUrl = process.env.VNP_IPN_URL;
+
+// ✅ Fix cứng để đảm bảo đúng
+const vnp_ReturnUrl = 'https://adminui2.vercel.app/vnpay-return';
+const vnp_IpnUrl = 'https://api.vnpt-hn.io.vn/api/payment/vnpay-ipn';
+
+// ✅ Hàm tạo ngày đúng GMT+7
+const getVNPayDate = () => {
+  const date = new Date(Date.now() + 7 * 60 * 60 * 1000); // UTC+7
+  const pad = (n) => n.toString().padStart(2, '0');
+  return (
+    date.getFullYear().toString() +
+    pad(date.getMonth() + 1) +
+    pad(date.getDate()) +
+    pad(date.getHours()) +
+    pad(date.getMinutes()) +
+    pad(date.getSeconds())
+  );
+};
 
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
   console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${ipAddress}`);
 
   const order = await Order.findByPk(orderId);
-  if (!order) {
-    console.error('❌ Order not found');
-    throw new Error('Order not found');
-  }
+  if (!order) throw new Error('Order not found');
 
   const amount = order.final_amount;
-  if (!amount || isNaN(amount)) {
-    console.error('❌ Invalid amount in order');
-    throw new Error('Invalid order amount');
-  }
+  if (!amount || isNaN(amount)) throw new Error('Invalid order amount');
 
-  const date = new Date();
-  const createDate = date.toISOString().replace(/[-:TZ]/g, '').slice(0, 14);
   const txnRef = `${orderId}-${Date.now()}`;
+  const createDate = getVNPayDate();
 
   const inputData = {
     vnp_Version: '2.1.0',
@@ -59,10 +58,12 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
 
   console.log('🔧 Raw inputData:', inputData);
 
-  const sortedData = Object.keys(inputData).sort().reduce((acc, key) => {
-    acc[key] = inputData[key];
-    return acc;
-  }, {});
+  const sortedData = Object.keys(inputData)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = inputData[key];
+      return acc;
+    }, {});
 
   const signData = qs.stringify(sortedData, { encode: false });
   const secureHash = crypto
@@ -86,19 +87,18 @@ const handleIPN = async (query) => {
   delete vnpParams.vnp_SecureHash;
   delete vnpParams.vnp_SecureHashType;
 
-  const sortedParams = Object.keys(vnpParams).sort().reduce((acc, key) => {
-    acc[key] = vnpParams[key];
-    return acc;
-  }, {});
+  const sortedParams = Object.keys(vnpParams)
+    .sort()
+    .reduce((acc, key) => {
+      acc[key] = vnpParams[key];
+      return acc;
+    }, {});
 
   const signData = qs.stringify(sortedParams, { encode: false });
   const hashCheck = crypto
     .createHmac('sha512', vnp_HashSecret)
     .update(signData)
     .digest('hex');
-
-  console.log('🔒 SecureHash received:', secureHash);
-  console.log('🔒 SecureHash calculated:', hashCheck);
 
   if (secureHash !== hashCheck) {
     console.error('❌ Checksum mismatch');
@@ -109,26 +109,14 @@ const handleIPN = async (query) => {
   const amount = parseFloat(vnpParams.vnp_Amount) / 100;
 
   const order = await Order.findByPk(orderId);
-  if (!order) {
-    console.error('❌ Order not found');
-    return { code: '01', message: 'Order not found' };
-  }
-
-  if (order.final_amount != amount) {
-    console.error('❌ Amount mismatch', {
-      expected: order.final_amount,
-      received: amount,
-    });
+  if (!order) return { code: '01', message: 'Order not found' };
+  if (order.final_amount != amount)
     return { code: '04', message: 'Invalid amount' };
-  }
 
   const existing = await Payment.findOne({
     where: { transaction_no: vnpParams.vnp_TransactionNo },
   });
-  if (existing) {
-    console.warn('⚠️ Transaction already exists:', vnpParams.vnp_TransactionNo);
-    return { code: '02', message: 'Transaction already exists' };
-  }
+  if (existing) return { code: '02', message: 'Transaction already exists' };
 
   const paymentData = {
     order_id: orderId,
