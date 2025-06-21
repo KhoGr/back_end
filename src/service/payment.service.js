@@ -27,9 +27,9 @@ const getVNPayDate = () => {
   );
 };
 
-// 🔧 Tạo URL thanh toán
+// ✅ Hàm tạo URL thanh toán
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
-  const realIp = ipAddress.split(',')[0].trim(); // ✅ chỉ lấy IP đầu tiên
+  const realIp = ipAddress.split(',')[0].trim(); // lấy IP đầu tiên
 
   console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${realIp}`);
   const order = await Order.findByPk(orderId);
@@ -41,7 +41,6 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
   const txnRef = `${orderId}-${Date.now()}`;
   const createDate = getVNPayDate();
 
-  // ✅ KHÔNG đưa vnp_IpnUrl vào inputData này
   const inputData = {
     vnp_Version: '2.1.0',
     vnp_Command: 'pay',
@@ -59,20 +58,28 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
 
   console.log('🔧 Raw inputData:', inputData);
 
+  // ✅ Sắp xếp tham số theo alphabet
   const sortedData = Object.keys(inputData).sort().reduce((acc, key) => {
     acc[key] = inputData[key];
     return acc;
   }, {});
 
-  const signData = qs.stringify(sortedData, { encode: false });
+  // ✅ Tạo chuỗi signData không encode để hash
+  const signData = Object.entries(sortedData)
+    .map(([key, val]) => `${key}=${val}`)
+    .join('&');
+
   const secureHash = crypto
     .createHmac('sha512', vnp_HashSecret)
     .update(signData)
     .digest('hex');
 
+  // ✅ Gắn secure hash vào query
   sortedData.vnp_SecureHash = secureHash;
 
+  // ✅ Tạo URL final (có encode đúng chuẩn)
   const finalUrl = `${vnp_Url}?${qs.stringify(sortedData, { encode: true })}`;
+
   console.log('✅ Generated payment URL:', finalUrl);
 
   return finalUrl;
