@@ -1,25 +1,26 @@
 import qs from 'qs';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config(); // Load .env trước khi dùng biến môi trường
+
+// 🔍 Log toàn bộ biến env liên quan đến VNPay để kiểm tra
+console.log('✅ ENV CHECK:', {
+  VNP_TMN_CODE: process.env.VNP_TMN_CODE,
+  VNP_HASH_SECRET: process.env.VNP_HASH_SECRET?.slice(0, 5) + '...',
+  VNP_URL: process.env.VNP_URL,
+  VNP_RETURN_URL: process.env.VNP_RETURN_URL,
+  VNP_IPN_URL: process.env.VNP_IPN_URL,
+});
 
 import Payment from '../models/payment.js';
 import Order from '../models/order.js';
 
+// Đọc từ biến môi trường
 const vnp_TmnCode = process.env.VNP_TMN_CODE;
 const vnp_HashSecret = process.env.VNP_HASH_SECRET;
 const vnp_Url = process.env.VNP_URL;
 const vnp_ReturnUrl = process.env.VNP_RETURN_URL;
 const vnp_IpnUrl = process.env.VNP_IPN_URL;
-
-console.log('✅ ENV CONFIG:');
-console.log({
-  vnp_TmnCode,
-  vnp_HashSecret: vnp_HashSecret?.slice(0, 5) + '...', // hide for safety
-  vnp_Url,
-  vnp_ReturnUrl,
-  vnp_IpnUrl,
-});
 
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
   console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${ipAddress}`);
