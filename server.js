@@ -36,7 +36,7 @@ const server = http.createServer(app); // 👈 Dùng http để tạo server
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081","https://api.vnpt-hn.io.vn/"],
+    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081","https://api.vnpt-hn.io.vn","https://restaurant.vnpt-hn.io.vn"],
     methods: ["GET", "POST"],
     credentials: true,
   },
