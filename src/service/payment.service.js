@@ -10,16 +10,16 @@ const vnp_TmnCode = process.env.VNP_TMN_CODE;
 const vnp_HashSecret = process.env.VNP_HASH_SECRET;
 const vnp_Url = process.env.VNP_URL;
 
-// ✅ Fix cứng để đảm bảo đúng
+// 🔒 Fix cứng URL để không phụ thuộc .env
 const vnp_ReturnUrl = 'https://adminui2.vercel.app/vnpay-return';
 const vnp_IpnUrl = 'https://api.vnpt-hn.io.vn/api/payment/vnpay-ipn';
 
-// ✅ Hàm tạo ngày đúng GMT+7
+// ⏰ Hàm tạo ngày theo GMT+7
 const getVNPayDate = () => {
-  const date = new Date(Date.now() + 7 * 60 * 60 * 1000); // UTC+7
+  const date = new Date(Date.now() + 7 * 60 * 60 * 1000); // +7h
   const pad = (n) => n.toString().padStart(2, '0');
   return (
-    date.getFullYear().toString() +
+    date.getFullYear() +
     pad(date.getMonth() + 1) +
     pad(date.getDate()) +
     pad(date.getHours()) +
@@ -28,9 +28,11 @@ const getVNPayDate = () => {
   );
 };
 
+// 🔧 Tạo URL thanh toán
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
-  console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${ipAddress}`);
+  const realIp = ipAddress.split(',')[0].trim(); // ✅ chỉ lấy IP đầu tiên
 
+  console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${realIp}`);
   const order = await Order.findByPk(orderId);
   if (!order) throw new Error('Order not found');
 
@@ -51,19 +53,17 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
     vnp_OrderType: 'other',
     vnp_Amount: amount * 100,
     vnp_ReturnUrl,
-    vnp_IpAddr: ipAddress,
+    vnp_IpAddr: realIp,
     vnp_CreateDate: createDate,
     vnp_IpnUrl,
   };
 
   console.log('🔧 Raw inputData:', inputData);
 
-  const sortedData = Object.keys(inputData)
-    .sort()
-    .reduce((acc, key) => {
-      acc[key] = inputData[key];
-      return acc;
-    }, {});
+  const sortedData = Object.keys(inputData).sort().reduce((acc, key) => {
+    acc[key] = inputData[key];
+    return acc;
+  }, {});
 
   const signData = qs.stringify(sortedData, { encode: false });
   const secureHash = crypto
@@ -79,6 +79,7 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
   return finalUrl;
 };
 
+// 📥 Xử lý IPN từ VNPay
 const handleIPN = async (query) => {
   console.log('📥 IPN received:', query);
 
@@ -87,12 +88,10 @@ const handleIPN = async (query) => {
   delete vnpParams.vnp_SecureHash;
   delete vnpParams.vnp_SecureHashType;
 
-  const sortedParams = Object.keys(vnpParams)
-    .sort()
-    .reduce((acc, key) => {
-      acc[key] = vnpParams[key];
-      return acc;
-    }, {});
+  const sortedParams = Object.keys(vnpParams).sort().reduce((acc, key) => {
+    acc[key] = vnpParams[key];
+    return acc;
+  }, {});
 
   const signData = qs.stringify(sortedParams, { encode: false });
   const hashCheck = crypto
@@ -110,8 +109,7 @@ const handleIPN = async (query) => {
 
   const order = await Order.findByPk(orderId);
   if (!order) return { code: '01', message: 'Order not found' };
-  if (order.final_amount != amount)
-    return { code: '04', message: 'Invalid amount' };
+  if (order.final_amount != amount) return { code: '04', message: 'Invalid amount' };
 
   const existing = await Payment.findOne({
     where: { transaction_no: vnpParams.vnp_TransactionNo },
