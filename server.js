@@ -95,6 +95,9 @@ app.use("/api/chatbot", chatbotApi);
 app.use("/api/aimodel", aiModelApi); 
 app.use("/api/payment", paymentAPI); 
 app.use("/api/monthlyFinance", monthlyFinanceApi); 
+app.get('/', (req, res) => {
+  res.send('✅ Backend API is running!');
+});
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
   console.log("🟢 Client connected:", socket.id);
