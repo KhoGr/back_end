@@ -21,13 +21,19 @@ console.log({
   vnp_IpnUrl,
 });
 
-const createPaymentUrl = async ({ orderId, amount, ipAddress }) => {
-  console.log(`📦 Creating payment for OrderID: ${orderId} - Amount: ${amount} - IP: ${ipAddress}`);
+const createPaymentUrl = async ({ orderId, ipAddress }) => {
+  console.log(`📦 Creating payment for OrderID: ${orderId} - IP: ${ipAddress}`);
 
   const order = await Order.findByPk(orderId);
   if (!order) {
     console.error('❌ Order not found');
     throw new Error('Order not found');
+  }
+
+  const amount = order.final_amount;
+  if (!amount || isNaN(amount)) {
+    console.error('❌ Invalid amount in order');
+    throw new Error('Invalid order amount');
   }
 
   const date = new Date();
