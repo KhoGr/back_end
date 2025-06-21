@@ -55,7 +55,7 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
     vnp_ReturnUrl,
     vnp_IpAddr: realIp,
     vnp_CreateDate: createDate,
-    vnp_IpnUrl,
+    // vnp_IpnUrl,
   };
 
   console.log('🔧 Raw inputData:', inputData);
