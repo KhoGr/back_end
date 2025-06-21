@@ -9,7 +9,7 @@ import Order from '../models/order.js';
 const vnp_TmnCode = process.env.VNP_TMN_CODE;
 const vnp_HashSecret = process.env.VNP_HASH_SECRET;
 const vnp_Url = process.env.VNP_URL;
-const vnp_ReturnUrl = 'https://restaurant.vnpt-hn.io.vn/orders';
+const vnp_ReturnUrl = 'https://restaurant.vnpt-hn.io.vn/order-return';
 
 // Hàm chuẩn hóa ngày giờ theo GMT+7
 const getVNPayDate = () => {
