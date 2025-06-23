@@ -5,16 +5,16 @@ import { verifyAdmin } from "../middlewares/auth.middleware.js";
 
 const monthlyFinanceApi = Router();
 
-// ✅ Tìm kiếm theo tháng keyword (ví dụ ?keyword=2025-06)
+//  Tìm kiếm theo tháng keyword
 monthlyFinanceApi.get("/search", MonthlyFinanceController.getByKeyword);
 
-// ✅ Lấy tất cả bản ghi tổng hợp
+//  Lấy tất cả bản ghi tổng hợp
 monthlyFinanceApi.get("/get", MonthlyFinanceController.getAll);
 
-// ✅ Lấy bản ghi theo ID
+//  Lấy bản ghi theo ID
 monthlyFinanceApi.get("/get/:id", MonthlyFinanceController.getById);
 
-// ✅ Tạo hoặc cập nhật bản ghi tổng hợp (chỉ admin)
+//  Tạo hoặc cập nhật bản ghi tổng hợp (chỉ admin)
 monthlyFinanceApi.post(
   "/create",
   jwtAuthentication,

@@ -390,10 +390,9 @@ export const verifyAccount = async (req, res) => {
     // Cập nhật trạng thái xác minh
     await account.update({ is_verified: true });
 
-    // Sau khi xác minh thành công, chuyển hướng người dùng tới trang chủ của client
-    return res.redirect(`${process.env.CLIENT_URL}/account/login`);
+    return res.redirect(`https://restaurant.vnpt-hn.io.vn/account/login`);
   } catch (error) {
-    console.error("❌ Lỗi xác minh tài khoản:", error);
+    console.error(" Lỗi xác minh tài khoản:", error);
     return res.status(500).json({ message: "Lỗi hệ thống, thử lại sau." });
   }
 };
@@ -416,7 +415,7 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // ❗️Kiểm tra quyền
+    // Kiểm tra quyền
     if (account.role !== "admin") {
       return res.status(403).json({ message: "Tài khoản không có quyền admin" });
     }
@@ -466,14 +465,6 @@ export const postLogout = async (req, res) => {
   }
 };
 
-// Giả sử bạn có hàm sendResetPasswordEmail để gửi email. Trong ví dụ test, chúng ta sẽ in token ra console.
-// import { sendResetPasswordEmail } from "../configs/mail.config.js";
-
-/**
- * Endpoint gửi yêu cầu reset password
- * POST /reset-password-request
- * Body: { email: string }
- */
 export const requestPasswordReset = async (req, res) => {
   try {
     const { email } = req.body;
@@ -635,7 +626,7 @@ export const updateUserProfile = async (req, res) => {
         data: updatedUser,
       });
   } catch (error) {
-    console.error("❌ Lỗi khi cập nhật profile:", error);
+    console.error(" Lỗi khi cập nhật profile:", error);
     return res.status(500).json({ message: "Lỗi server." });
   }
 };
@@ -658,10 +649,10 @@ export const googleLoginCallback = async (req, res) => {
       expires: expiresAt,
     });
 
-    console.log("Redirecting to:", `http://localhost:8080/google-success?token=${token}&tokenExpires=${expiresAt.toISOString()}`);
+    console.log("Redirecting to:", `https://restaurant.vnpt-hn.io.vn/google-success?token=${token}&tokenExpires=${expiresAt.toISOString()}`);
 
     return res.redirect(
-      `http://localhost:8080/google-success?token=${token}&tokenExpires=${encodeURIComponent(expiresAt.toISOString())}`
+      `https://restaurant.vnpt-hn.io.vn/google-success?token=${token}&tokenExpires=${encodeURIComponent(expiresAt.toISOString())}`
     );
   } catch (error) {
     console.error("Lỗi khi xử lý callback Google:", error);

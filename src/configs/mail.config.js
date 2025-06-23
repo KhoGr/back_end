@@ -51,7 +51,7 @@ export const sendVerificationEmail = async (email, token) => {
 };
 //email xác nhận mật khẩu
 export const sendResetPasswordEmail = async (email, token) => {
-  const resetPasswordUrl = `http://localhost:8080/api/account/reset-password?token=${token}`;
+  const resetPasswordUrl = `https://api.vnpt-hn.io.vn/api/account/reset-password?token=${token}`;
   const htmlContent = `
      <h2>Cung cấp lại mật khẩu!</h2>
     <p>Nhấn vào liên kết bên dưới để xác nhận  bạn muốn đổi mật khẩu:</p>

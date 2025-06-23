@@ -6,7 +6,6 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 const stringSimilarity = require('string-similarity');
 
-// Load .env
 dotenv.config();
 const { MenuItem, ChatbotResponse } = models;
 
@@ -15,7 +14,6 @@ const openai = new OpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
 });
 
-// ------------------------------
 function extractKeyword(text) {
   const keywords = ['menu', 'hours', 'reservation', 'location', 'payment', 'delivery'];
   const lowerText = text.toLowerCase();
@@ -45,7 +43,6 @@ export async function handleUserQuery(userInput) {
   try {
     const inputLower = userInput.toLowerCase();
 
-    // Lấy toàn bộ câu trả lời từ DB, kèm thông tin món ăn
     const allResponses = await ChatbotResponse.findAll({
       include: {
         model: MenuItem,
@@ -98,14 +95,13 @@ if (cheapItems.length > 0) {
 
     return reply;
   } catch (err) {
-    console.error(`❌ handleUserQuery error:`, err.message);
+    console.error(`handleUserQuery error:`, err.message);
     throw err;
   }
 }
 
 
-// ------------------------------
-// Thêm câu trả lời thủ công
+
 export async function addResponse({ keyword, response, category, ai_model_id, item_id }) {
   console.log('Creating response with:', {
     keyword,
@@ -120,7 +116,7 @@ export async function addResponse({ keyword, response, category, ai_model_id, it
     response,
     category,
     ai_model_id,
-    menu_item_id: item_id || null, // 👈 lưu khóa ngoại đúng cột
+    menu_item_id: item_id || null, 
   });
 }
 

@@ -1,7 +1,7 @@
 import { Sequelize } from 'sequelize';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Load biến môi trường từ .env
+dotenv.config(); 
 
 const sequelize = new Sequelize(
   process.env.DB_NAME ,
@@ -20,11 +20,11 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Kết nối MySQL thành công!');
     console.log('📌 Thông tin database:');
-    console.log('   🏠 Host:', process.env.DB_HOST || '127.0.0.1');
-    console.log('   📂 Database:', process.env.DB_NAME || 'mini_ecommerce');
-    console.log('   👤 User:', process.env.DB_USER || 'root');
-    console.log('   🔑 Password:', process.env.DB_PASSWORD ? '********' : 'Không có mật khẩu');
-    console.log('   🔌 Port:', process.env.DB_PORT || 3306);
+    console.log('🏠 Host:', process.env.DB_HOST || '127.0.0.1');
+    console.log('📂 Database:', process.env.DB_NAME || 'mini_ecommerce');
+    console.log('👤 User:', process.env.DB_USER || 'root');
+    console.log('🔑 Password:', process.env.DB_PASSWORD ? '********' : 'Không có mật khẩu');
+    console.log(' 🔌 Port:', process.env.DB_PORT || 3306);
   } catch (error) {
     console.error('❌ Lỗi kết nối MySQL:', error);
     process.exit(1);

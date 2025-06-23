@@ -93,7 +93,7 @@ create: async (data) => {
         checkInVN > currentOut &&
         (!nextIn || checkInVN < nextIn)
       ) {
-        console.log("✅ Check-in nằm giữa 2 ca => Cho phép.");
+        console.log(" Check-in nằm giữa 2 ca => Cho phép.");
         break;
       }
 
@@ -101,7 +101,7 @@ create: async (data) => {
         checkInVN >= current.check_in_time &&
         (!currentOut || checkInVN <= currentOut)
       ) {
-        console.log("❌ Check-in nằm trong thời gian ca đã chấm => Không hợp lệ.");
+        console.log(" Check-in nằm trong thời gian ca đã chấm => Không hợp lệ.");
         throw new Error("Giờ check-in đang nằm trong ca đã chấm công trước đó.");
       }
     }
@@ -117,7 +117,7 @@ create: async (data) => {
     const shiftStart = toVNTime(`${currentShift.date}T${currentShift.start_time}`);
     const shiftEnd = toVNTime(`${currentShift.date}T${currentShift.end_time}`);
 
-    console.log(`[CREATE] 🔎 So sánh giờ check-in với giờ ca:`);
+    console.log(`[CREATE]  So sánh giờ check-in với giờ ca:`);
     console.log(` - Ca bắt đầu: ${shiftStart}`);
     console.log(` - Ca kết thúc: ${shiftEnd}`);
     console.log(` - Check-in: ${checkInVN}`);
@@ -126,10 +126,10 @@ create: async (data) => {
     if (!finalStatus) {
       if (checkInVN <= shiftStart) {
         finalStatus = "present";
-        console.log("✅ Đúng giờ hoặc sớm hơn => on_time");
+        console.log(" Đúng giờ hoặc sớm hơn => on_time");
       } else if (checkInVN > shiftStart && checkInVN < shiftEnd) {
         finalStatus = "late";
-        console.log("⚠️ Đi trễ => late");
+        console.log(" Đi trễ => late");
       } else {
         finalStatus = "absent";
         console.log("❌ Check-in sau giờ kết thúc => invalid");
@@ -142,7 +142,7 @@ create: async (data) => {
       hours_worked = parseFloat((diffMs / (1000 * 60 * 60)).toFixed(2));
     }
 
-    console.log(`[CREATE] ✅ Tạo attendance mới: hours_worked = ${hours_worked}, status = ${finalStatus}`);
+    console.log(`[CREATE]  Tạo attendance mới: hours_worked = ${hours_worked}, status = ${finalStatus}`);
 
     const created = await Attendance.create({
       staff_id,
@@ -154,19 +154,19 @@ create: async (data) => {
       note,
     });
 
-    console.log(`[CREATE] 🎉 Attendance tạo thành công: ID=${created.attendance_id}`);
+    console.log(`[CREATE]  Attendance tạo thành công: ID=${created.attendance_id}`);
     return created;
   } catch (err) {
-    console.error("[CREATE] ❌ Lỗi khi tạo attendance:", err.message);
+    console.error("[CREATE] Lỗi khi tạo attendance:", err.message);
     throw new Error("Lỗi khi tạo attendance: " + err.message);
   }
 },
-// 📌 Thêm hàm này vào trong attendanceService:
+//  Thêm hàm này vào trong attendanceService:
 update: async (attendance_id, data) => {
   const attendance = await Attendance.findByPk(attendance_id);
   if (!attendance) throw new Error("Không tìm thấy attendance.");
 
-  // ✅ Chuyển cả check-in và check-out từ payload (nếu có)
+  //  Chuyển cả check-in và check-out từ payload (nếu có)
   const checkInVN = data.check_in_time ? toVNTime(data.check_in_time) : null;
   const checkOutVN = data.check_out_time ? toVNTime(data.check_out_time) : null;
 
@@ -181,7 +181,7 @@ update: async (attendance_id, data) => {
 
   const shiftEnd = toVNTime(`${shift.date}T${shift.end_time}`);
   if (checkOutVN && checkOutVN > shiftEnd) {
-    console.warn("⚠️ Check-out vượt quá giờ ca, vẫn cho phép nhưng có thể tính overtime.");
+    console.warn(" Check-out vượt quá giờ ca, vẫn cho phép nhưng có thể tính overtime.");
   }
 
   // Tính giờ làm
@@ -231,7 +231,7 @@ update: async (attendance_id, data) => {
     });
   },
 
-  // 🔍 Lọc điểm danh theo tên nhân viên hoặc ngày
+  //  Lọc điểm danh theo tên nhân viên hoặc ngày
   getFiltered: async ({ name, date } = {}) => {
     const whereAttendance = {};
     const whereStaff = {};
@@ -264,7 +264,7 @@ update: async (attendance_id, data) => {
       order: [["created_at", "DESC"]],
     });
   },
-  // 📅 Lấy chấm công theo nhân viên + khoảng thời gian (thường là 1 tháng)
+  // Lấy chấm công theo nhân viên + khoảng thời gian (thường là 1 tháng)
 getByStaffAndPeriod: async ({ staff_id, start_date, end_date }) => {
   if (!staff_id || !start_date || !end_date) {
     throw new Error("Thiếu thông tin lọc (staff_id, start_date, end_date)");

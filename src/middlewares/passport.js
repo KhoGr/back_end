@@ -64,5 +64,4 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// 🔥 Export passport để sử dụng ở các file khác
 export default passport;

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-dotenv.config(); // Đảm bảo dotenv được nạp đúng cách
+dotenv.config();
 
 const config = {
   development: {

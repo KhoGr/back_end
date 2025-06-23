@@ -93,7 +93,6 @@ export const calculateMonthlyRevenue = async (monthString) => {
   });
 
   const total = parseFloat(result.total_revenue || 0);
-  console.log(`[Revenue] ✅ Total revenue for ${monthString}: ${total}`);
 
   return total;
 };
@@ -144,12 +143,11 @@ export const createOrder = async (data) => {
 
 export const deleteOrder = async (id) => {
   const order = await Order.findByPk(id, {
-    include: ['tables'], // đảm bảo lấy được danh sách bàn liên kết
+    include: ['tables'], 
   });
 
   if (!order) throw new Error("Order not found");
 
-  // Nếu là loại reservation thì cập nhật lại status các bàn về available
   if (order.order_type === "reservation" && order.tables?.length > 0) {
     for (const table of order.tables) {
       table.status = "available";
@@ -356,6 +354,5 @@ export const getOrdersByCustomerId = async (customer_id ) => {
     order: [["order_date", "DESC"]],
   });
 
-  console.log(`[Service] ✅ Found ${orders.length} orders for customer_id: ${customer_id}`);
   return orders;
 };

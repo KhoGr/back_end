@@ -11,7 +11,7 @@ export const createWorkShift = async (staffId, data = {}) => {
       throw new Error("Không tìm thấy nhân viên.");
     }
 
-    // ⚠️ Kiểm tra trùng giờ với các ca khác trong cùng ngày
+    //  Kiểm tra trùng giờ với các ca khác trong cùng ngày
     const overlapShift = await WorkShift.findOne({
       where: {
         staff_id: staffId,
@@ -101,7 +101,7 @@ export const getWorkShifts = async ({ date, staffId, month }) => {
 
     return shifts;
   } catch (error) {
-    console.error("❌ Lỗi khi lấy lịch làm việc:", error);
+    console.error("Lỗi khi lấy lịch làm việc:", error);
     throw error;
   }
 };
@@ -117,7 +117,7 @@ export const updateWorkShift = async (shiftId, updateData) => {
 
     return workShift;
   } catch (error) {
-    console.error("❌ Lỗi khi cập nhật ca làm việc:", error);
+    console.error("Lỗi khi cập nhật ca làm việc:", error);
     throw error;
   }
 };
@@ -132,7 +132,7 @@ export const deleteWorkShift = async (shiftId) => {
     await workShift.destroy();
     return { message: "Đã xoá ca làm việc thành công." };
   } catch (error) {
-    console.error("❌ Lỗi khi xoá ca làm việc:", error);
+    console.error(" Lỗi khi xoá ca làm việc:", error);
     throw error;
   }
 };

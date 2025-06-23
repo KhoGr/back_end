@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import Table from "../models/table.js"; // Đảm bảo có .js nếu dùng ES module
+import Table from "../models/table.js";
 
 export const getAllTables = async () => {
   return await Table.findAll();

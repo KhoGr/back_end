@@ -4,10 +4,7 @@ import { calculateMonthlyRevenue } from "./order.service.js";
 import { calculateMonthlyPayroll } from "./payroll.service.js";
 import { Op } from "sequelize";
 
-/**
- * Tạo hoặc cập nhật bản ghi tài chính tổng hợp theo tháng
- * @param {string} month - Định dạng "YYYY-MM", ví dụ "2025-06"
- */
+
 const generateMonthlyFinanceSummary = async (month) => {
   if (!/^\d{4}-\d{2}$/.test(month)) {
     throw new Error("Invalid month format. Expected YYYY-MM");
@@ -40,9 +37,7 @@ const generateMonthlyFinanceSummary = async (month) => {
     { returning: true }
   );
 
-  console.log(
-    `📊 Tổng hợp tháng ${month}: 💰 Revenue ${totalRevenue} | 🧾 Payroll ${totalPayroll} | 🛒 Orders ${totalOrders}`
-  );
+
 
   return {
     month,
@@ -90,7 +85,6 @@ const searchByMonthKeyword = async (keyword) => {
   });
 };
 
-// ✅ Export mặc định
 export default {
   generateMonthlyFinanceSummary,
   getAllSummaries,

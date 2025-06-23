@@ -22,7 +22,7 @@ export const createStaff = async (userId, data = {}) => {
 
     return newStaff;
   } catch (error) {
-    console.error("❌ Lỗi khi tạo staff:", error);
+    console.error(" Lỗi khi tạo staff:", error);
     throw error;
   }
 };
@@ -49,7 +49,7 @@ export const getStaffByUserId = async (userId) => {
 
     return staff;
   } catch (error) {
-    console.error("❌ Lỗi khi lấy staff:", error);
+    console.error(" Lỗi khi lấy staff:", error);
     throw error;
   }
 };
@@ -110,7 +110,7 @@ export const updateStaff = async (userId, updateData) => {
     // Trả lại dữ liệu mới
     return await getStaffByUserId(userId);
   } catch (error) {
-    console.error("❌ Lỗi updateStaff:", error);
+    console.error("Lỗi updateStaff:", error);
     throw error;
   }
 };
@@ -127,7 +127,7 @@ export const deleteStaff = async (userId) => {
     await Account.destroy({ where: { id: user.account_id } });
     await user.destroy(); // sẽ tự động xoá Staff nhờ CASCADE
   } catch (error) {
-    console.error("❌ Lỗi khi xóa staff:", error);
+    console.error(" Lỗi khi xóa staff:", error);
     throw error;
   }
 };
@@ -153,7 +153,7 @@ export const getAllStaffs = async () => {
 
     return staffs;
   } catch (error) {
-    console.error("❌ Lỗi khi lấy tất cả staffs:", error);
+    console.error(" Lỗi khi lấy tất cả staffs:", error);
     throw new Error("Không thể lấy danh sách staff.");
   }
 };
@@ -184,7 +184,7 @@ export const searchStaffsByName = async (searchTerm) => {
 
     return staffs;
   } catch (error) {
-    console.error("❌ Lỗi khi tìm kiếm staff:", error);
+    console.error("Lỗi khi tìm kiếm staff:", error);
     throw new Error("Không thể tìm kiếm staff.");
   }
 };

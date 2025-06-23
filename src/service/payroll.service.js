@@ -24,7 +24,6 @@ export const calculateMonthlyPayroll = async (month) => {
   });
 
   const total = parseFloat(result.total_payroll || 0);
-  console.log(`[Payroll] ✅ Tổng lương đã trả cho ${month}: ${total}`);
   return total;
 };
 
@@ -34,7 +33,6 @@ async generatePayrollForStaff(staff_id, period_start, period_end) {
   console.log('👤 Nhân viên:', staff?.toJSON?.());
 
   if (!staff || !staff.salary || !staff.working_type) {
-    throw new Error('Không tìm thấy nhân viên hoặc thiếu thông tin lương/loại hình.');
   }
 
   const attendances = await Attendance.findAll({
@@ -58,9 +56,7 @@ async generatePayrollForStaff(staff_id, period_start, period_end) {
       0
     );
     total_salary = total_hours * Number(staff.salary);
-    console.log(`💼 Part-time: ${total_hours} giờ x ${staff.salary} = ${total_salary}`);
   } else {
-    // fulltime: tính theo số ngày công (dựa trên số bản ghi chấm công)
     const uniqueDays = new Set(
       attendances.map(att =>
         new Date(att.check_in_time).toISOString().split('T')[0]
@@ -68,7 +64,6 @@ async generatePayrollForStaff(staff_id, period_start, period_end) {
     );
     total_days = uniqueDays.size;
     total_salary = total_days * Number(staff.salary);
-    console.log(`💼 Full-time: ${total_days} ngày x ${staff.salary} = ${total_salary}`);
   }
 
   const payroll = await Payroll.create({
@@ -80,7 +75,6 @@ async generatePayrollForStaff(staff_id, period_start, period_end) {
     status: 'pending',
   });
 
-  console.log('✅ Payroll:', payroll.toJSON());
 
   return payroll;
 },

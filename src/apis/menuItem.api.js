@@ -7,14 +7,14 @@ import { upload } from '../middlewares/upload.middleware.js';
 
 const menuItemApi = Router();
 
-// 🆕 Public route: Search menu items
+//Search menu items
 menuItemApi.get('/search', MenuItemController.search);
 
 // Public routes
 menuItemApi.get('/get', MenuItemController.getAll);
 menuItemApi.get('/get/:id', MenuItemController.getById);
 
-// 🆕 Upload ảnh món ăn (admin)
+//Upload ảnh món ăn
 menuItemApi.patch(
   '/update-image/:id',
   upload.single("image"),
@@ -23,7 +23,6 @@ menuItemApi.patch(
   MenuItemController.changeMenuItemImage
 );
 
-// Protected routes for Admin only
 menuItemApi.post('/create', jwtAuthentication, verifyAdmin, MenuItemController.create);
 menuItemApi.put('/update/:id', jwtAuthentication, verifyAdmin, MenuItemController.update);
 menuItemApi.delete('/delete/:id', jwtAuthentication, verifyAdmin, MenuItemController.delete);

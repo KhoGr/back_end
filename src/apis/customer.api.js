@@ -16,11 +16,11 @@ const customerApi = Router();
 const adminOnly = [jwtAuthentication, verifyAdmin];
 
 // Danh sách routes
-customerApi.get("/getAllCustomers", adminOnly, getAllCustomersController);               // GET /api/customer
-customerApi.get("/getCustomer/:userId", getCustomerController);           // GET /api/customer/:userId
-customerApi.post("/createCustomer", adminOnly, createCustomerController);              // POST /api/customer
-customerApi.put("/updateCustomer/:userId",  updateCustomerController);        // PUT /api/customer/:userId
-customerApi.delete("/deleteCustomer/:userId", adminOnly, deleteCustomerController);     // DELETE /api/customer/:userId
-customerApi.get("/search",adminOnly, searchCustomersByNameController); // GET /api/customer/search
+customerApi.get("/getAllCustomers", adminOnly, getAllCustomersController);             
+customerApi.get("/getCustomer/:userId", getCustomerController);          
+customerApi.post("/createCustomer", adminOnly, createCustomerController);             
+customerApi.put("/updateCustomer/:userId",  updateCustomerController);     
+customerApi.delete("/deleteCustomer/:userId", adminOnly, deleteCustomerController);     
+customerApi.get("/search",adminOnly, searchCustomersByNameController);
 
 export default customerApi;

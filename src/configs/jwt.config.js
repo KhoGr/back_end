@@ -6,13 +6,7 @@ const JWT_EXPIRES_TIME = '1440m';
 console.log(JWT_EXPIRES_TIME);
 console.log(JWT_SECRET);
 
-/**
- * Hàm encodedToken: tạo JWT từ thông tin của user.
- *
- * @param {Object} user - Đối tượng user chứa các thông tin cần thiết (ví dụ: email, id).
- * @param {String} expire - Thời gian hết hạn của token (mặc định là JWT_EXPIRES_TIME).
- * @returns {String} token - JWT được tạo.
- */
+
 export const encodedToken = async (user, expire = JWT_EXPIRES_TIME) => {
   try {
     const payload = {
@@ -38,7 +32,7 @@ export const verifyJWT = async (token) => {
   try {
     console.log("token sắp giải mã",token);
     const decoded = await jwt.verify(token, JWT_SECRET);
-    return decoded; // Trả về payload đã giải mã
+    return decoded; 
   } catch (error) {
     console.error('Error verifying JWT:', error.message);
     return null; 

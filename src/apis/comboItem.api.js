@@ -1,26 +1,26 @@
-import { Router } from 'express';
-import ComboItemController from '../controllers/comboItem.controller.js';
-import { jwtAuthentication } from '../middlewares/passport.middleware.js';
-import { verifyAdmin } from '../middlewares/auth.middleware.js';
+// import { Router } from 'express';
+// import ComboItemController from '../controllers/comboItem.controller.js';
+// import { jwtAuthentication } from '../middlewares/passport.middleware.js';
+// import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
-const comboItemApi = Router();
+// const comboItemApi = Router();
 
-// 🔍 Tìm kiếm món trong combo theo keyword (?keyword=...)
-comboItemApi.get('/search/:combo_id', ComboItemController.searchComboItem);
+// // search theo id
+// comboItemApi.get('/search/:combo_id', ComboItemController.searchComboItem);
 
-// 📋 Lấy danh sách các món trong combo
-comboItemApi.get('/:combo_id', ComboItemController.getItems);
+// // 📋 Lấy danh sách các món trong combo
+// comboItemApi.get('/:combo_id', ComboItemController.getItems);
 
-// ➕ Thêm một món vào combo
-comboItemApi.post('/', jwtAuthentication, verifyAdmin, ComboItemController.addItem);
+// // ➕ Thêm một món vào combo
+// comboItemApi.post('/', jwtAuthentication, verifyAdmin, ComboItemController.addItem);
 
-// 🔄 Cập nhật thông tin món trong combo
-comboItemApi.put('/:combo_id/:item_id', jwtAuthentication, verifyAdmin, ComboItemController.updateItem);
+// // 🔄 Cập nhật thông tin món trong combo
+// comboItemApi.put('/:combo_id/:item_id', jwtAuthentication, verifyAdmin, ComboItemController.updateItem);
 
-// ❌ Xoá một món khỏi combo
-comboItemApi.delete('/:combo_id/:item_id', jwtAuthentication, verifyAdmin, ComboItemController.removeItem);
+// // ❌ Xoá một món khỏi combo
+// comboItemApi.delete('/:combo_id/:item_id', jwtAuthentication, verifyAdmin, ComboItemController.removeItem);
 
-// 🧹 Xoá toàn bộ món trong combo
-comboItemApi.delete('/:combo_id', jwtAuthentication, verifyAdmin, ComboItemController.clearCombo);
+// // 🧹 Xoá toàn bộ món trong combo
+// comboItemApi.delete('/:combo_id', jwtAuthentication, verifyAdmin, ComboItemController.clearCombo);
 
-export default comboItemApi;
+// export default comboItemApi;

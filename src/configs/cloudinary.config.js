@@ -16,6 +16,6 @@ cloudinary.config({
 });
 
 // Kiểm tra xem Cloudinary có nhận được cấu hình không
-console.log("Cloudinary status:", cloudinary.config());
+// console.log("Cloudinary status:", cloudinary.config());
 
 export default cloudinary;

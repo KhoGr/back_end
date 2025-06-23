@@ -1,6 +1,6 @@
 import express from "express";
-import http from "http"; // 👈 Cần thêm
-import { Server } from "socket.io"; // 👈 Cần thêm
+import http from "http"; 
+import { Server } from "socket.io"; 
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -14,7 +14,7 @@ import staffApi from "./src/apis/staff.api.js";
 import menuItemApi from "./src/apis/menuItem.api.js";
 import comboItemApi from "./src/apis/comboItem.api.js";
 import orderAPI from "./src/apis/order.api.js";
-import tableApi from "./src/apis/table.api.js"; // 👈 Route mới
+import tableApi from "./src/apis/table.api.js";
 import menuItemCommentApi from './src/apis/menuItemComment.api.js'
 import membershipApi from './src/apis/vip.api.js'
 import voucherApi from './src/apis/voucher.api.js'
@@ -32,7 +32,7 @@ dotenv.config();
 const connectedUsers = new Map();
 
 const app = express();
-const server = http.createServer(app); // 👈 Dùng http để tạo server
+const server = http.createServer(app); 
 
 const io = new Server(server, {
   cors: {
@@ -48,10 +48,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({
   origin: [
-    process.env.CLIENT_URL,                    // domain chính (frontend production/dev)
-    'http://localhost:5173',                   // dev frontend
-    'http://localhost:8080',                   // dev frontend
-    'http://localhost:8081',                   // dev frontend
+    process.env.CLIENT_URL,                  
+    'http://localhost:5173',                  
+    'http://localhost:8080',                 
+    'http://localhost:8081',                  
     'https://api.vnpt-hn.io.vn',
     'https://admin.vnpt-hn.io.vn',
     'https://restaurant.vnpt-hn.io.vn'
@@ -70,7 +70,6 @@ app.use(cors({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Gắn socket.io vào req để controller dùng được
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -87,8 +86,8 @@ app.use("/api/staff", staffApi);
 app.use("/api/menuitem", menuItemApi);
 app.use("/api/comboItem", comboItemApi);
 app.use("/api/order", orderAPI);
-app.use("/api/table", tableApi); // 👈 Đường dẫn API mới
-app.use("/api/menu-item-comment", menuItemCommentApi); // 👈 Đường dẫn API mới
+app.use("/api/table", tableApi);
+app.use("/api/menu-item-comment", menuItemCommentApi); 
 app.use("/api/vip", membershipApi); 
 app.use("/api/voucher", voucherApi); 
 app.use("/api/workshift", workShiftApi); 
@@ -99,11 +98,11 @@ app.use("/api/aimodel", aiModelApi);
 app.use("/api/monthlyFinance", monthlyFinanceApi); 
 app.use("/api/payment", paymentAPI); 
 app.get('/', (req, res) => {
-  res.send('✅ Backend API is running!');
+  res.send('Backend API is running!');
 });
 // Sự kiện Socket.IO (khi client kết nối)
 io.on("connection", (socket) => {
-  console.log("🟢 Client connected:", socket.id);
+  console.log(" Client connected:", socket.id);
 
   // Nhận userId từ client để lưu map
   socket.on("register", (userId) => {
@@ -112,7 +111,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("🔴 Client disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id);
     for (const [userId, id] of connectedUsers.entries()) {
       if (id === socket.id) {
         connectedUsers.delete(userId);
@@ -125,5 +124,5 @@ io.on("connection", (socket) => {
 // Khởi động server
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server chạy tại http://localhost:${PORT}`);
+  console.log(`Server chạy tại http://localhost:${PORT}`);
 });

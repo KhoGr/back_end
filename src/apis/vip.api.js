@@ -5,7 +5,7 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const membershipApi = Router();
 
-// ✅ Route tìm kiếm theo keyword (nên đặt trước route /get/:id để tránh nhầm lẫn)
+// tìm kiếm theo keyword 
 membershipApi.get('/search', MembershipController.getByKeyword);
 
 // Lấy tất cả memberships
@@ -22,5 +22,6 @@ membershipApi.put('/update/:id', jwtAuthentication, verifyAdmin, MembershipContr
 
 // Xoá (yêu cầu admin)
 membershipApi.delete('/delete/:id', jwtAuthentication, verifyAdmin, MembershipController.delete);
+//đã xong và hiện ko vấn đề
 
 export default membershipApi;

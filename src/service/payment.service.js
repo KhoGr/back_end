@@ -28,7 +28,6 @@ const getVNPayDate = () => {
 // Encode giá trị theo đúng format VNPAY
 const encodeVNPay = (str) => encodeURIComponent(str).replace(/%20/g, '+');
 
-// ✅ Tạo URL thanh toán
 const createPaymentUrl = async ({ orderId, ipAddress }) => {
   const realIp = ipAddress.split(',')[0].trim();
 
@@ -76,13 +75,13 @@ const createPaymentUrl = async ({ orderId, ipAddress }) => {
 
   const finalUrl = `${vnp_Url}?${qs.stringify(sortedData, { encode: true })}`;
 
-  console.log('✅ Generated payment URL:', finalUrl);
+  console.log(' Generated payment URL:', finalUrl);
   return finalUrl;
 };
 
 // 📥 Xử lý IPN từ VNPAY
 const handleIPN = async (query) => {
-  console.log('📥 IPN received:', query);
+  console.log(' IPN received:', query);
 
   const vnpParams = { ...query };
   const secureHash = vnpParams.vnp_SecureHash;
@@ -101,7 +100,7 @@ const handleIPN = async (query) => {
     .digest('hex');
 
   if (secureHash !== hashCheck) {
-    console.error('❌ Checksum mismatch');
+    console.error(' Checksum mismatch');
     return { code: '97', message: 'Checksum not match' };
   }
 
@@ -132,12 +131,12 @@ const handleIPN = async (query) => {
   };
 
   await Payment.create(paymentData);
-  console.log('💾 Payment recorded:', paymentData);
+  console.log(' Payment recorded:', paymentData);
 
   if (vnpParams.vnp_ResponseCode === '00') {
     order.is_paid = true;
     await order.save();
-    console.log('✅ Order marked as paid');
+    console.log('Order marked as paid');
   }
 
   return { code: '00', message: 'Success' };

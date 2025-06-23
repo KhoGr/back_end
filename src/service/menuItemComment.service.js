@@ -23,7 +23,7 @@ const getCommentsByItemId = async (item_id) => {
     include: [
       {
         model: Customer,
-        as: 'commenter', // ✅ đúng alias theo model
+        as: 'commenter', // đúng alias theo model
         include: {
           model: User,
           as: 'user_info',

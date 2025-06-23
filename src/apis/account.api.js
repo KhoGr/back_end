@@ -34,8 +34,8 @@ accountApi.post("/staff-register", registerStaff);
 
 accountApi.get("/verify-account", verifyAccount);
 
-accountApi.post("/login", checkLogin,postLogin); //login bất kỳ
-accountApi.post("/admin-login", checkLogin,postLogin); //login cho admin
+accountApi.post("/login", checkLogin,postLogin); 
+accountApi.post("/admin-login", checkLogin,postLogin); 
 
 
 

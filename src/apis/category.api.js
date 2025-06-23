@@ -5,7 +5,6 @@ import { verifyAdmin } from "../middlewares/auth.middleware.js";
 
 const categoryApi = Router();
 
-// ✅ Route tìm kiếm theo keyword (nên đặt trước route /get/:id để tránh nhầm lẫn)
 categoryApi.get("/search", CategoryController.getByKeyword);
 
 // Lấy tất cả categories

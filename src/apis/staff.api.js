@@ -12,10 +12,8 @@ import { verifyAdmin } from "../middlewares/auth.middleware.js";
 
 const staffApi = Router();
 
-// Áp dụng middleware xác thực và kiểm tra quyền admin
 const adminOnly = [jwtAuthentication, verifyAdmin];
 
-// Staff APIs
 staffApi.post("/", adminOnly, createStaffController);                     // POST    /api/staff
 staffApi.get("/", adminOnly, getAllStaffsController);                     // GET     /api/staff
 staffApi.get("/search", adminOnly, searchStaffsByNameController);         // GET     /api/staff/search?name=...

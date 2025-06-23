@@ -5,28 +5,27 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const orderAPI = Router();
 
-// 🔍 Tìm kiếm/lọc đơn hàng theo từ khóa/trạng thái/ngày
-// ⚠️ Đặt trước /:id để tránh bị hiểu nhầm là param id
+
 orderAPI.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
 
-// 📋 🔒 Lấy danh sách tất cả đơn hàng (chỉ admin)
+//  Lấy danh sách tất cả đơn hàng 
 orderAPI.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
 
-// 🆕 Tạo mới đơn hàng (nhân viên hoặc khách hàng)
+//  Tạo mới đơn hàng 
 orderAPI.post('/', jwtAuthentication, OrderController.create);
 
-// 📦 Lấy chi tiết đơn hàng
+//  Lấy chi tiết đơn hàng
 orderAPI.get('/:id', jwtAuthentication, OrderController.getById);
 
-// 🔁 Cập nhật đơn hàng (status, is_paid, payment_method,...)
+//  Cập nhật đơn hàng hơi bug tý
 orderAPI.patch('/:id', jwtAuthentication, OrderController.update);
 
-// 🔄 Tính lại tổng tiền đơn hàng
+//  Tính lại tổng tiền đơn hàng
 orderAPI.patch('/:id/recalculate', jwtAuthentication, verifyAdmin, OrderController.recalculateTotal);
 
-// ❌ Xoá đơn hàng
+//  Xoá đơn hàng
 orderAPI.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
-orderAPI.get('/customer/:customer_id', jwtAuthentication, OrderController.getByCustomerId); // <-- ✅ mới thêm
+orderAPI.get('/customer/:customer_id', jwtAuthentication, OrderController.getByCustomerId);
 
 
 export default orderAPI;

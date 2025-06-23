@@ -15,13 +15,12 @@ const tableApi = Router();
 const adminOnly = [jwtAuthentication, verifyAdmin];
 
 // Table APIs
-tableApi.post('/', adminOnly, createTable);                    // POST    /api/table
-tableApi.get('/', getAllTables);                    // GET     /api/table
-tableApi.get('/:tableId', adminOnly, getTableById);           // GET     /api/table/:tableId
-tableApi.put('/:tableId', adminOnly, updateTable);            // PUT     /api/table/:tableId
-tableApi.delete('/:tableId', adminOnly, deleteTable);         // DELETE  /api/table/:tableId
+tableApi.post('/', adminOnly, createTable);                
+tableApi.get('/', getAllTables);               
+tableApi.get('/:tableId', adminOnly, getTableById);       
+tableApi.put('/:tableId', adminOnly, updateTable);     
+tableApi.delete('/:tableId', adminOnly, deleteTable);        
 
-// Realtime Booking via HTTP (socket event sẽ emit ở controller)
-tableApi.post('/book', jwtAuthentication, bookTable);         // POST    /api/table/book
+tableApi.post('/book', jwtAuthentication, bookTable);     //socket
 
 export default tableApi;

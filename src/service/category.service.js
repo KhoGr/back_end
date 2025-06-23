@@ -1,5 +1,5 @@
 import Category from '../models/category.js';
-import { Op } from 'sequelize'; // ✅ Thêm dòng này để dùng Op
+import { Op } from 'sequelize'; 
 
 class CategoryService {
   async createCategory(data) {
@@ -31,7 +31,7 @@ class CategoryService {
     return { message: 'Category deleted successfully' };
   }
 
-  // ✅ Thêm phương thức search theo keyword
+  //  Thêm phương thức search theo keyword
   async searchByKeyword(keyword) {
     return await Category.findAll({
 where: {

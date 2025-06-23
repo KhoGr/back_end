@@ -5,19 +5,19 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const aiModelApi = Router();
 
-// ✅ GET tất cả model
+// get tất cả model
 aiModelApi.get('/get', AIModelController.listModels);
 
-// ✅ GET một model theo ID
+// get một model theo ID
 aiModelApi.get('/get/:id', AIModelController.getModel);
 
-// ✅ Tạo mới model (chỉ admin)
+// Tạo mới model
 aiModelApi.post('/create', jwtAuthentication, verifyAdmin, AIModelController.createModel);
 
-// ✅ Cập nhật model (chỉ admin)
+// Cập nhật model 
 aiModelApi.put('/update/:id', jwtAuthentication, verifyAdmin, AIModelController.updateModel);
 
-// ✅ Xoá model (chỉ admin)
+//  Xoá model 
 aiModelApi.delete('/delete/:id', jwtAuthentication, verifyAdmin, AIModelController.removeModel);
 
 export default aiModelApi;

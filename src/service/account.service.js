@@ -17,19 +17,19 @@ export const isExistAccount = async (email) => {
 
 export const findAccount = async (email) => {
   try {
-    console.log("🔍 Đang tìm account với email:", email);
+    console.log(" Đang tìm account với email:", email);
 
     // Test kết nối: lấy toàn bộ account (tối đa 5 dòng)
     const allAccounts = await Account.findAll({ limit: 5 });
-    console.log("📦 Sample tài khoản từ DB:", allAccounts);
+    console.log(" Sample tài khoản từ DB:", allAccounts);
 
     // Tìm tài khoản theo email
     const account = await Account.findOne({ where: { email } });
-    console.log("✅ Kết quả tìm account:", account);
+    console.log(" Kết quả tìm account:", account);
 
     return account;
   } catch (error) {
-    console.error("❌ Lỗi trong findAccount:", error);
+    console.error(" Lỗi trong findAccount:", error);
     return null;
   }
 };
@@ -68,19 +68,19 @@ export const createUser = async (
 
     // Kiểm tra role hợp lệ
     if (![ROLES.ADMIN, ROLES.CUSTOMER, ROLES.SELLER].includes(role)) {
-      console.warn("⚠️ Vai trò không hợp lệ:", role);
+      console.warn(" Vai trò không hợp lệ:", role);
       throw new Error("Vai trò không hợp lệ");
     }
 
     // Kiểm tra xem tài khoản có tồn tại không
     const account = await Account.findByPk(accountId);
     if (!account) {
-      console.error("❌ Không tìm thấy tài khoản với ID:", accountId);
+      console.error(" Không tìm thấy tài khoản với ID:", accountId);
       throw new Error("Không tìm thấy tài khoản tương ứng");
     }
 
     // Bỏ phần tạo lại username ở đây
-    console.log("🔹 Tạo user với username:", username);
+    console.log(" Tạo user với username:", username);
     const finalPhone = phone.trim() === "" ? null : phone;
 
 
@@ -94,10 +94,10 @@ export const createUser = async (
       role,
     });
 
-    console.log("✅ User được tạo thành công:", newUser);
+    console.log(" User được tạo thành công:", newUser);
     return newUser;
   } catch (error) {
-    console.error("❌ Lỗi chi tiết khi tạo user:", error);
+    console.error(" Lỗi chi tiết khi tạo user:", error);
     throw new Error(`Lỗi khi tạo user: ${error.message}`);
   }
 };
@@ -159,17 +159,17 @@ export const getUserInfo = async (userId) => {
 
 export const updateProfile = async (userId, updateData) => {
   try {
-    console.log("📌 Cập nhật profile cho user_id:", userId, "Dữ liệu cập nhật:", updateData);
+    console.log(" Cập nhật profile cho user_id:", userId, "Dữ liệu cập nhật:", updateData);
 
     if (!userId) {
-      throw new Error("❌ user_id bị undefined hoặc null!");
+      throw new Error(" user_id bị undefined hoặc null!");
     }
 
     // Cập nhật user trong database
     const [updatedRows] = await User.update(updateData, { where: { user_id: userId } });
 
     if (!updatedRows) {
-      console.log("❌ Không có dòng nào được cập nhật.");
+      console.log(" Không có dòng nào được cập nhật.");
       return null;
     }
 
@@ -181,7 +181,7 @@ export const updateProfile = async (userId, updateData) => {
 
     return updatedUser;
   } catch (error) {
-    console.error("❌ Lỗi khi cập nhật user:", error);
+    console.error(" Lỗi khi cập nhật user:", error);
     throw error;
   }
 };
