@@ -69,7 +69,7 @@ Account.init(
   },
   {
     sequelize,
-    tableName: 'Accounts',
+    tableName: 'accounts',
     modelName: 'Account',
     timestamps: true,
     underscored: true,
