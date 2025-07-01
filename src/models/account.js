@@ -1,6 +1,6 @@
 
 import { Model, DataTypes } from 'sequelize';
-import { sequelize } from '../config/database.js'; // Đảm bảo đường dẫn chính xác đến file cấu hình Sequelize
+import { sequelize } from '../config/database.js';
 
 class Account extends Model {
 static associate(models) {
@@ -69,7 +69,7 @@ Account.init(
   },
   {
     sequelize,
-    tableName: 'Accounts',
+    tableName: 'accounts',
     modelName: 'Account',
     timestamps: true,
     underscored: true,
