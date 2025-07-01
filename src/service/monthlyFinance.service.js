@@ -2,8 +2,8 @@ import MonthlyFinanceSummary from "../models/MonthlyFinanceSummary.js";
 import Order from "../models/order.js";
 import { calculateMonthlyRevenue } from "./order.service.js";
 import { calculateMonthlyPayroll } from "./payroll.service.js";
+import inventoryBatchService from "./inventoryBatch.service.js";
 import { Op } from "sequelize";
-
 
 const generateMonthlyFinanceSummary = async (month) => {
   if (!/^\d{4}-\d{2}$/.test(month)) {
@@ -16,7 +16,9 @@ const generateMonthlyFinanceSummary = async (month) => {
 
   const totalRevenue = await calculateMonthlyRevenue(month);
   const totalPayroll = await calculateMonthlyPayroll(month);
-
+  const totalMaterialCost = await inventoryBatchService.getMonthlyTotalValue(
+    month
+  );
   const totalOrders = await Order.count({
     where: {
       status: "completed",
@@ -32,17 +34,17 @@ const generateMonthlyFinanceSummary = async (month) => {
       month,
       total_revenue: totalRevenue,
       total_payroll: totalPayroll,
+      total_material_cost: totalMaterialCost,
       total_orders: totalOrders,
     },
     { returning: true }
   );
 
-
-
   return {
     month,
     total_revenue: totalRevenue,
     total_payroll: totalPayroll,
+    total_material_cost: totalMaterialCost,
     total_orders: totalOrders,
   };
 };
@@ -50,7 +52,7 @@ const generateMonthlyFinanceSummary = async (month) => {
 // Lấy tất cả bản ghi tổng hợp theo tháng
 const getAllSummaries = async () => {
   return await MonthlyFinanceSummary.findAll({
-    order: [['month', 'DESC']],
+    order: [["month", "DESC"]],
   });
 };
 
@@ -81,7 +83,7 @@ const searchByMonthKeyword = async (keyword) => {
         [Op.like]: `%${keyword}%`,
       },
     },
-    order: [['month', 'DESC']],
+    order: [["month", "DESC"]],
   });
 };
 

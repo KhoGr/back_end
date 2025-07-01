@@ -14,11 +14,11 @@ const staffApi = Router();
 
 const adminOnly = [jwtAuthentication, verifyAdmin];
 
-staffApi.post("/", adminOnly, createStaffController);                     // POST    /api/staff
-staffApi.get("/", adminOnly, getAllStaffsController);                     // GET     /api/staff
-staffApi.get("/search", adminOnly, searchStaffsByNameController);         // GET     /api/staff/search?name=...
-staffApi.get("/:userId", adminOnly, getStaffController);                  // GET     /api/staff/:userId
-staffApi.put("/:userId", adminOnly, updateStaffController);              // PUT     /api/staff/:userId
-staffApi.delete("/:userId", adminOnly, deleteStaffController);           // DELETE  /api/staff/:userId
+staffApi.post("/", adminOnly, createStaffController);                  
+staffApi.get("/", adminOnly, getAllStaffsController);                     
+staffApi.get("/search", adminOnly, searchStaffsByNameController);        
+staffApi.get("/:userId", adminOnly, getStaffController);                
+staffApi.put("/:userId", adminOnly, updateStaffController);             
+staffApi.delete("/:userId", adminOnly, deleteStaffController);          
 
 export default staffApi;

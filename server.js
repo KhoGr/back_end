@@ -25,6 +25,7 @@ import chatbotApi from './src/apis/chatbot.api.js'
 import aiModelApi from './src/apis/aiModel.api.js'
 import paymentAPI from './src/apis/payment.api.js'
 import monthlyFinanceApi from './src/apis/monthlyFinance.api.js'
+import inventoryBatchApi from './src/apis/inventoryBatch.api.js'
 
 import { sequelize,connectDB } from "./src/config/database.js";
 
@@ -97,6 +98,7 @@ app.use("/api/chatbot", chatbotApi);
 app.use("/api/aimodel", aiModelApi); 
 app.use("/api/monthlyFinance", monthlyFinanceApi); 
 app.use("/api/payment", paymentAPI); 
+app.use("/api/inventory", inventoryBatchApi); 
 app.get('/', (req, res) => {
   res.send('Backend API is running!');
 });

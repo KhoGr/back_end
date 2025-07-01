@@ -19,6 +19,7 @@ import Staff from "./staff.js";
 import AIModel from "./AIModel.js";
 import ChatbotResponse from "./ChatbotResponse.js";
 import OrderTable from "./order_table.js";
+import InventoryBatch from "./InventoryBatch.js";
 
 
 // Danh sách models
@@ -41,7 +42,8 @@ Payroll,
 WorkShift,
 AIModel,
 ChatbotResponse,
-OrderTable
+OrderTable,
+InventoryBatch
 };
 
 // Gọi associate() cho mọi model TRỪ Customer trước

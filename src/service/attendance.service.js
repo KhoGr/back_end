@@ -3,7 +3,6 @@ import { Op } from "sequelize";
 
 const { Attendance, Staff, WorkShift, User } = models;
 
-// Hàm hỗ trợ: chuyển sang giờ Việt Nam (UTC+7)
 const toVNTime = (dateStr) => {
   const date = new Date(dateStr);
   return new Date(date.getTime() + 7 * 60 * 60 * 1000);
@@ -161,7 +160,6 @@ create: async (data) => {
     throw new Error("Lỗi khi tạo attendance: " + err.message);
   }
 },
-//  Thêm hàm này vào trong attendanceService:
 update: async (attendance_id, data) => {
   const attendance = await Attendance.findByPk(attendance_id);
   if (!attendance) throw new Error("Không tìm thấy attendance.");
@@ -202,7 +200,8 @@ update: async (attendance_id, data) => {
   });
 
   return updated;
-},  // Lấy điểm danh theo ID
+}, 
+ // Lấy điểm danh theo ID
   getById: async (id) => {
     const attendance = await Attendance.findByPk(id, {
       include: [

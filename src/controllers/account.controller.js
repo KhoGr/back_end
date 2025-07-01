@@ -30,7 +30,7 @@ import Account from "../models/account.js";
 import { uploadImage } from "../service/common.service.js";
 import jwt from "jsonwebtoken";
 import { createCustomer } from "../service/customer.service.js";
-import { createStaff } from "../service/staff.service.js";
+import { createFullStaff } from "../service/staff.service.js";
 import User from "../models/user.js";
 import Customer from "../models/customer.js";
 import Staff from "../models/staff.js";
@@ -339,7 +339,7 @@ export const registerStaff = async (req, res) => {
 
     // 👉 Tạo Staff nếu user có role là 'staff'
     if (newUser.role === ROLES.STAFF) {
-      await createStaff(newUser.user_id); // 👈 Gọi hàm tạo staff
+      await createFullStaff(newUser.user_id); // 👈 Gọi hàm tạo staff
       console.log("✅ Tạo staff thành công");
     }
 

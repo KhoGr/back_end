@@ -2,9 +2,7 @@ import { Model, DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.js';
 
 class MonthlyFinanceSummary extends Model {
-  // Nếu sau này cần liên kết thì có thể khai báo tại đây
   static associate(models) {
-    // Không có liên kết nào lúc này
   }
 }
 
@@ -16,11 +14,11 @@ MonthlyFinanceSummary.init(
       primaryKey: true,
     },
     month: {
-      type: DataTypes.STRING(7), // VD: "2025-06"
+      type: DataTypes.STRING(7),
       allowNull: false,
       unique: true,
       validate: {
-        is: /^\d{4}-\d{2}$/, // định dạng YYYY-MM
+        is: /^\d{4}-\d{2}$/,
       },
     },
     total_revenue: {
@@ -37,6 +35,11 @@ MonthlyFinanceSummary.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       defaultValue: 0,
+    },
+    total_material_cost: { 
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+      defaultValue: 0.0,
     },
     note: {
       type: DataTypes.TEXT,

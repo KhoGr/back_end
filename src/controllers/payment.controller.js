@@ -22,7 +22,6 @@ export const handleVNPayIPN = async (req, res) => {
   try {
     const result = await paymentService.handleIPN(req.query);
 
-    // 🔁 VNPay yêu cầu phản hồi đúng định dạng JSON
     return res.status(200).json({
       RspCode: result.code,
       Message: result.message,

@@ -18,7 +18,7 @@ export const createWorkShiftController = async (req, res) => {
 
     res.status(201).json(workshift);
   } catch (error) {
-    console.error("❌ Tạo workshift thất bại:", error.message);
+    console.error("Tạo workshift thất bại:", error.message);
     res.status(400).json({ error: error.message });
   }
 };
@@ -36,7 +36,7 @@ export const getWorkShiftsByStaffId = async (req, res) => {
 
     res.json(workshifts);
   } catch (error) {
-    console.error("❌ Lấy workshift thất bại:", error.message);
+    console.error("Lấy workshift thất bại:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -50,7 +50,7 @@ export const updateWorkShiftController = async (req, res) => {
 
     res.json(updatedWorkShift);
   } catch (error) {
-    console.error("❌ Cập nhật workshift thất bại:", error.message);
+    console.error("Cập nhật workshift thất bại:", error.message);
     res.status(400).json({ error: error.message });
   }
 };
@@ -63,7 +63,7 @@ export const deleteWorkShift = async (req, res) => {
 
     res.json(result);
   } catch (error) {
-    console.error("❌ Xoá workshift thất bại:", error.message);
+    console.error(" Xoá workshift thất bại:", error.message);
     res.status(400).json({ error: error.message });
   }
 };
@@ -79,7 +79,28 @@ export const getAllWorkShiftsController = async (req, res) => {
 
     res.json(workshifts);
   } catch (error) {
-    console.error("❌ Lỗi khi lấy danh sách workshifts:", error.message);
+    console.error(" Lỗi khi lấy danh sách workshifts:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
+export const generateMonthlyWorkShiftsController = async (req, res) => {
+  try {
+    const { staff_id, month } = req.body;
+
+    if (!staff_id || !month) {
+      return res.status(400).json({ error: "Thiếu thông tin staff_id hoặc month." });
+    }
+
+    const result = await WorkShiftService.generateMonthlyFullDayShifts(staff_id, month);
+
+    res.status(201).json({
+      message: "Tạo ca làm việc cả tháng thành công.",
+      created: result.created,
+      skipped: result.skipped,
+    });
+  } catch (error) {
+    console.error("Tạo ca làm việc tháng thất bại:", error.message);
+    res.status(400).json({ error: error.message });
+  }
+};
+

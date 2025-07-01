@@ -3,13 +3,44 @@ import * as staffService from "../service/staff.service.js";
 // Tạo Staff mới
 export const createStaffController = async (req, res) => {
   try {
-    const { userId, position, salary, working_type, joined_date, note } = req.body;
+    console.log("📥 [POST /staff] Dữ liệu nhận được từ FE:", req.body);
 
-    if (!userId) {
-      return res.status(400).json({ error: "Thiếu userId." });
+    const {
+      email,
+      password,
+      name,
+      username,
+      phone,
+      address,
+      position,
+      salary,
+      working_type,
+      joined_date,
+      note,
+    } = req.body;
+
+    // Kiểm tra các trường bắt buộc
+    if (!email || !password || !name || !username || !position || !salary) {
+      console.warn("⚠️ Thiếu trường bắt buộc:", {
+        email,
+        password,
+        name,
+        username,
+        position,
+        salary,
+      });
+      return res.status(400).json({
+        error: "Thiếu thông tin bắt buộc (email, password, name, username, position, salary).",
+      });
     }
 
-    const staff = await staffService.createStaff(userId, {
+    const staff = await staffService.createFullStaff({
+      email,
+      password,
+      name,
+      username,
+      phone,
+      address,
       position,
       salary,
       working_type,
@@ -17,11 +48,15 @@ export const createStaffController = async (req, res) => {
       note,
     });
 
+    console.log("✅ Nhân viên được tạo:", staff);
+
     res.status(201).json(staff);
   } catch (error) {
+    console.error("❌ Lỗi createStaffController:", error);
     res.status(400).json({ error: error.message });
   }
 };
+
 
 // Lấy thông tin 1 Staff theo userId
 export const getStaffController = async (req, res) => {

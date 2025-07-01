@@ -1,31 +1,94 @@
-import models from "../models/index.js";
+import models, { sequelize } from "../models/index.js";
 import { Op } from "sequelize";
 
 const { Staff, User, Account } = models;
 
-// Tạo mới Staff
-export const createStaff = async (userId, data = {}) => {
+export const createFullStaff = async (data) => {
+  const {
+    email,
+    password,
+    name,
+    username,
+    phone,
+    address,
+    position,
+    salary,
+    working_type = "fulltime",
+    joined_date = null,
+    note = null,
+  } = data;
+
+  if (!email || !password || !name || !username || !position || !salary) {
+    throw new Error(
+      "Thiếu thông tin bắt buộc (email, password, name, username, position, salary)"
+    );
+  }
+
+  const transaction = await sequelize.transaction();
+
   try {
-    const existingStaff = await Staff.findOne({ where: { user_id: userId } });
-    if (existingStaff) {
-      throw new Error("Staff đã tồn tại cho user này.");
-    }
+    const existingAccount = await Account.findOne({ where: { email } });
+    if (existingAccount) throw new Error("Email đã tồn tại.");
 
-    const newStaff = await Staff.create({
-      user_id: userId,
-      position: data.position || null,
-      salary: data.salary || null,
-      working_type: data.working_type || "fulltime",
-      joined_date: data.joined_date || null,
-      note: data.note || null,
+    const newAccount = await Account.create(
+      {
+        email,
+        password,
+        provider: "local",
+        is_verified: true,
+      },
+      { transaction }
+    );
+
+    const newUser = await User.create(
+      {
+        account_id: newAccount.id,
+        name,
+        username,
+        phone,
+        address,
+        role: "staff",
+      },
+      { transaction }
+    );
+
+    const newStaff = await Staff.create(
+      {
+        user_id: newUser.user_id,
+        position,
+        salary,
+        working_type,
+        joined_date,
+        note,
+      },
+      { transaction }
+    );
+
+    await transaction.commit();
+
+    return await Staff.findOne({
+      where: { user_id: newUser.user_id },
+      include: [
+        {
+          model: User,
+          as: "user",
+          include: [
+            {
+              model: Account,
+              as: "account",
+              attributes: ["email"],
+            },
+          ],
+        },
+      ],
     });
-
-    return newStaff;
   } catch (error) {
-    console.error(" Lỗi khi tạo staff:", error);
+    await transaction.rollback();
+    console.error("Lỗi khi tạo đầy đủ staff:", error);
     throw error;
   }
 };
+
 
 // Lấy thông tin staff theo user_id
 export const getStaffByUserId = async (userId) => {
@@ -54,7 +117,7 @@ export const getStaffByUserId = async (userId) => {
   }
 };
 
-// Cập nhật Staff, User, Account
+// Cập nhật Staff
 export const updateStaff = async (userId, updateData) => {
   try {
     const staff = await Staff.findOne({
@@ -89,6 +152,8 @@ export const updateStaff = async (userId, updateData) => {
     };
 
     await Staff.update(staffFields, { where: { user_id: userId } });
+    console.log('Received updateData:', updateData);
+
 
     // Cập nhật User
     const userFields = {

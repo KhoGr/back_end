@@ -56,6 +56,52 @@ export const createWorkShift = async (staffId, data = {}) => {
     throw error;
   }
 };
+export const generateMonthlyFullDayShifts = async (staffId, month) => {
+  try {
+    const staff = await Staff.findByPk(staffId);
+    if (!staff) throw new Error("Không tìm thấy nhân viên.");
+
+    const startDate = dayjs(`${month}-01`);
+    const endDate = startDate.endOf("month");
+
+    const datesInMonth = [];
+    for (let d = startDate; d.isBefore(endDate) || d.isSame(endDate); d = d.add(1, "day")) {
+      datesInMonth.push(d.format("YYYY-MM-DD"));
+    }
+
+    const existingShifts = await WorkShift.findAll({
+      where: {
+        staff_id: staffId,
+        date: {
+          [Op.between]: [startDate.format("YYYY-MM-DD"), endDate.format("YYYY-MM-DD")],
+        },
+      },
+    });
+
+    const existingDates = new Set(existingShifts.map(s => s.date));
+
+    const shiftsToCreate = datesInMonth
+      .filter(date => !existingDates.has(date))
+      .map(date => ({
+        staff_id: staffId,
+        shift_type: "full_day",
+        date,
+        start_time: "08:00:00",  // ⏰ Giờ bắt đầu đã sửa
+        end_time: "21:00:00",    // ⏰ Giờ kết thúc đã sửa
+        note: "Tạo ca làm tự động cả ngày (08:00-21:00)",
+      }));
+
+    const createdShifts = await WorkShift.bulkCreate(shiftsToCreate);
+
+    return {
+      created: createdShifts.length,
+      skipped: existingDates.size,
+    };
+  } catch (error) {
+    console.error("❌ Lỗi khi tạo ca làm việc cho cả tháng:", error);
+    throw error;
+  }
+};
 
 
 export const getWorkShifts = async ({ date, staffId, month }) => {
