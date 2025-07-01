@@ -33,7 +33,7 @@ export const sendEmail = async ({ to, subject, html }) => {
 
 // Gửi email xác minh tài khoản
 export const sendVerificationEmail = async (email, token) => {
-  const verificationUrl = `${process.env.SERVER_URL}/api/account/verify-account?token=${token}`;
+  const verificationUrl = `https://api.vnpt-hn.io.vn/api/account/verify-account?token=${token}`;
 
   const htmlContent = `
     <h2>Chào mừng bạn đến với Mini E-commerce!</h2>

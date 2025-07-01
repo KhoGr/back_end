@@ -1,4 +1,6 @@
 import * as staffService from "../service/staff.service.js";
+import bcrypt from "bcrypt";
+
 
 // Tạo Staff mới
 export const createStaffController = async (req, res) => {
@@ -34,9 +36,12 @@ export const createStaffController = async (req, res) => {
       });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("✅ Mật khẩu đã được mã hóa");
+
     const staff = await staffService.createFullStaff({
       email,
-      password,
+      password: hashedPassword,
       name,
       username,
       phone,
@@ -56,7 +61,6 @@ export const createStaffController = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
-
 
 // Lấy thông tin 1 Staff theo userId
 export const getStaffController = async (req, res) => {
