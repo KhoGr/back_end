@@ -112,3 +112,31 @@ export const getAttendancesByStaffAndPeriod = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+export const getPresentStaffCountByDateController = async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) {
+      return res.status(400).json({ error: 'Thiếu ngày cần thống kê.' });
+    }
+
+    const count = await AttendanceService.attendanceService.countPresentStaffByDate(date);
+    res.json({ date, present_count: count });
+  } catch (error) {
+    console.error('❌ Lỗi khi đếm số nhân viên đã đi làm:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};
+export const getAttendanceSummaryByDateController = async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) {
+      return res.status(400).json({ error: 'Thiếu ngày cần thống kê.' });
+    }
+
+    const summary = await AttendanceService.attendanceService.getAttendanceSummaryByDate(date);
+    res.json({ date, summary });
+  } catch (error) {
+    console.error('❌ Lỗi khi lấy thống kê chấm công:', error.message);
+    res.status(500).json({ error: error.message });
+  }
+};

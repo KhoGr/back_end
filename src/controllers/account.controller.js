@@ -34,7 +34,6 @@ import { createFullStaff } from "../service/staff.service.js";
 import User from "../models/user.js";
 import Customer from "../models/customer.js";
 import Staff from "../models/staff.js";
-
 export const postLoginWithStaffId = async (req, res) => {
   try {
     const email = req.body.email?.toLowerCase();
@@ -48,6 +47,12 @@ export const postLoginWithStaffId = async (req, res) => {
     if (!account.is_verified) {
       return res.status(403).json({
         message: 'Tài khoản chưa được xác minh. Vui lòng kiểm tra email.',
+      });
+    }
+
+    if (!account.is_active) {
+      return res.status(403).json({
+        message: 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.',
       });
     }
 
@@ -100,8 +105,8 @@ export const postLoginWithStaffId = async (req, res) => {
         is_verified: account.is_verified,
         provider: account.provider,
         role: user.role,
-        staff: user.staffProfile ,
-        staff_id: user.staffProfile?.staff_id ,
+        staff: user.staffProfile,
+        staff_id: user.staffProfile?.staff_id,
       },
     });
   } catch (error) {
@@ -126,6 +131,11 @@ export const postLoginWithCustomerId = async (req, res) => {
         message: "Tài khoản chưa được xác minh. Vui lòng kiểm tra email.",
       });
     }
+    if (!account.is_active) {
+  return res.status(403).json({
+    message: "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.",
+  });
+}
 
     const isMatch = await bcrypt.compare(password, account.password);
     if (!isMatch) {

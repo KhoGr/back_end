@@ -66,6 +66,11 @@ Account.init(
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
     },
+        is_active: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
   },
   {
     sequelize,

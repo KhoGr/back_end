@@ -6,7 +6,9 @@ import {
   deleteOrder,
   searchOrders,
   calculateTotalAmount,
-  getOrdersByCustomerId
+  getOrdersByCustomerId,
+  getDailyOrderStats,
+  getTopServedMenuItemsByDate,
 } from '../service/order.service.js';
 
 const OrderController = {
@@ -14,13 +16,9 @@ const OrderController = {
   async create(req, res) {
     console.log('[OrderController.create] req.body:', JSON.stringify(req.body, null, 2));
     try {
-      const order = await createOrder(req.body); // table_ids xử lý trong service
-      console.log('[OrderController.create] Order created successfully:', JSON.stringify(order, null, 2));
-
-      // 📤 Phát socket cho tất cả client
+      const order = await createOrder(req.body);
       req.io.emit("order-created", order);
       console.log("📤 Emit 'order-created'");
-
       res.status(201).json({ success: true, data: order });
     } catch (error) {
       console.error('[Create Order] Error object:', error);
@@ -31,7 +29,7 @@ const OrderController = {
   // 📋 Lấy tất cả đơn hàng
   async getAll(req, res) {
     try {
-      const orders = await getAllOrders(); // đã include tables trong service
+      const orders = await getAllOrders();
       res.status(200).json({ success: true, data: orders });
     } catch (error) {
       console.error('[Get All Orders]', error.message);
@@ -42,7 +40,7 @@ const OrderController = {
   // 🔍 Lấy đơn hàng theo ID
   async getById(req, res) {
     try {
-      const order = await getOrderById(req.params.id); // đã include tables trong service
+      const order = await getOrderById(req.params.id);
       res.status(200).json({ success: true, data: order });
     } catch (error) {
       console.error('[Get Order By ID]', error.message);
@@ -60,9 +58,7 @@ const OrderController = {
     }
 
     try {
-      const updatedOrder = await updateOrder(id, updates); // xử lý table_ids trong service
-
-      // 📤 Gửi socket cập nhật đơn hàng
+      const updatedOrder = await updateOrder(id, updates);
       const senderSocketId = req.headers['x-socket-id'];
       req.io.sockets.sockets.forEach((socket) => {
         if (socket.id !== senderSocketId) {
@@ -70,7 +66,6 @@ const OrderController = {
         }
       });
       console.log("📤 Emit 'order-updated'");
-
       res.status(200).json({ success: true, data: updatedOrder });
     } catch (error) {
       console.error('[Update Order]', error.message);
@@ -110,25 +105,50 @@ const OrderController = {
       res.status(400).json({ success: false, message: error.message });
     }
   },
-async getByCustomerId(req, res) {
-  try {
-    const { customer_id  } = req.params;
 
-    console.log("[GetByCustomerId] customerId param:", customer_id, "Type:", typeof customer_id );
+  // 👤 Lấy đơn theo khách hàng
+  async getByCustomerId(req, res) {
+    try {
+      const { customer_id } = req.params;
+      if (!customer_id || isNaN(Number(customer_id))) {
+        return res.status(400).json({ success: false, message: 'Invalid customer ID' });
+      }
 
-    if (!customer_id || isNaN(Number(customer_id))) {
-      console.warn("[GetByCustomerId] ❌ Invalid customer ID:", customer_id );
-      return res.status(400).json({ success: false, message: 'Invalid customer ID' });
+      const orders = await getOrdersByCustomerId(Number(customer_id));
+      res.status(200).json({ success: true, data: orders });
+    } catch (error) {
+      console.error('[GetByCustomerId] ❌ Error:', error.message);
+      res.status(500).json({ success: false, message: error.message });
     }
+  },
 
-    const orders = await getOrdersByCustomerId(Number(customer_id ));
-    res.status(200).json({ success: true, data: orders });
-  } catch (error) {
-    console.error('[GetByCustomerId] ❌ Error:', error.message);
-    res.status(500).json({ success: false, message: error.message });
-  }
-},
+  // 📊 Thống kê đơn hàng và top món ăn theo ngày
+  async getDashboardStatsByDate(req, res) {
+    try {
+      const { date, limit } = req.query;
 
+      if (!date) {
+        return res.status(400).json({ success: false, message: 'Missing required query param: date' });
+      }
+
+      const [orderStats, topItems] = await Promise.all([
+        getDailyOrderStats(date),
+        getTopServedMenuItemsByDate(date, parseInt(limit) || 5),
+      ]);
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          date,
+          order_stats: orderStats,
+          top_items: topItems,
+        },
+      });
+    } catch (err) {
+      console.error('[DashboardController] ❌ Error:', err);
+      return res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
+    }
+  },
 };
 
 export default OrderController;

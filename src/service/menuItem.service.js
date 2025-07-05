@@ -22,7 +22,7 @@ const menuItemService = {
   },
 
   async getMenuItemById(item_id) {
-    console.log("Lấy menu item với item_id:", item_id); 
+    console.log("Lấy menu item với item_id:", item_id);
 
     const item = await MenuItem.findOne({
       where: { item_id },
@@ -33,7 +33,7 @@ const menuItemService = {
       },
     });
 
-    console.log("Kết quả truy vấn item:", item); 
+    console.log("Kết quả truy vấn item:", item);
     return item;
   },
 
@@ -60,7 +60,8 @@ const menuItemService = {
     return { message: 'Menu item deleted successfully' };
   },
 
-  async searchMenuItems({ keyword, category_id }) {
+  // ✅ Đã cập nhật hỗ trợ tìm theo tên, mô tả, danh mục, giá tối đa và tối thiểu
+  async searchMenuItems({ keyword, category_id, max_price, min_price }) {
     const whereClause = {};
 
     if (keyword) {
@@ -72,6 +73,20 @@ const menuItemService = {
 
     if (category_id) {
       whereClause.category_id = category_id;
+    }
+
+    if (max_price) {
+      whereClause.price = {
+        ...(whereClause.price || {}),
+        [Op.lte]: max_price,
+      };
+    }
+
+    if (min_price) {
+      whereClause.price = {
+        ...(whereClause.price || {}),
+        [Op.gte]: min_price,
+      };
     }
 
     return await MenuItem.findAll({

@@ -63,15 +63,23 @@ class MenuItemController {
     }
   }
 
-  async search(req, res) {
-    try {
-      const { keyword, category_id } = req.query;
-      const items = await menuItemService.searchMenuItems({ keyword, category_id });
-      res.status(200).json(items);
-    } catch (error) {
-      res.status(500).json({ message: error.message || 'Failed to search menu items' });
-    }
+async search(req, res) {
+  try {
+    const { keyword, category_id, max_price, min_price } = req.query;
+
+    const items = await menuItemService.searchMenuItems({
+      keyword,
+      category_id,
+      max_price: max_price ? Number(max_price) : undefined,
+      min_price: min_price ? Number(min_price) : undefined,
+    });
+
+    res.status(200).json(items);
+  } catch (error) {
+    res.status(500).json({ message: error.message || 'Failed to search menu items' });
   }
+}
+
   async changeMenuItemImage(req, res) {
     try {
       const { id } = req.params;

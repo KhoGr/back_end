@@ -287,5 +287,55 @@ getByStaffAndPeriod: async ({ staff_id, start_date, end_date }) => {
 
   return attendances;
 },
+countPresentStaffByDate: async (date) => {
+  const startOfDay = new Date(`${date}T00:00:00`);
+  const endOfDay = new Date(`${date}T23:59:59`);
+
+  const count = await Attendance.count({
+    where: {
+      check_in_time: {
+        [Op.between]: [startOfDay, endOfDay],
+      },
+      status: {
+        [Op.in]: ['present', 'late'],
+      },
+    },
+    distinct: true,
+    col: 'staff_id',
+  });
+
+  return count;
+},
+
+// 👇 Thống kê tổng số theo trạng thái (present, late, absent, on_leave)
+getAttendanceSummaryByDate: async (date) => {
+  const startOfDay = new Date(`${date}T00:00:00`);
+  const endOfDay = new Date(`${date}T23:59:59`);
+
+  const allAttendances = await Attendance.findAll({
+    where: {
+      check_in_time: {
+        [Op.between]: [startOfDay, endOfDay],
+      },
+    },
+    attributes: ['status'],
+  });
+
+  const summary = {
+    present: 0,
+    late: 0,
+    absent: 0,
+    on_leave: 0,
+  };
+
+  for (const att of allAttendances) {
+    if (summary[att.status] !== undefined) {
+      summary[att.status]++;
+    }
+  }
+
+  return summary;
+},
+
 
 };

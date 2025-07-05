@@ -90,3 +90,21 @@ export const searchCustomersByNameController = async (req, res) => {
     res.status(500).json({ error: error.message || "Lỗi khi tìm kiếm customer." });
   }
 };
+
+// ✅ Toggle is_active cho tài khoản customer
+export const toggleCustomerAccountStatusController = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { is_active } = req.body;
+
+    if (typeof is_active !== "boolean") {
+      return res.status(400).json({ error: "Trường is_active phải là true hoặc false." });
+    }
+
+    const result = await customerService.updateCustomerAccountStatus(Number(userId), is_active);
+    res.json(result);
+  } catch (error) {
+    console.error("❌ Lỗi khi toggle tài khoản customer:", error);
+    res.status(500).json({ error: error.message });
+  }
+};

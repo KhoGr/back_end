@@ -130,3 +130,19 @@ export const searchStaffsByNameController = async (req, res) => {
     res.status(500).json({ error: error.message || "Lỗi khi tìm kiếm nhân viên." });
   }
 };
+export const toggleStaffActiveStatusController = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { is_active } = req.body;
+
+    if (typeof is_active !== "boolean") {
+      return res.status(400).json({ error: "`is_active` phải là kiểu boolean (true/false)." });
+    }
+
+    const result = await staffService.updateStaffAccountStatus(userId, is_active);
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("❌ Lỗi toggleStaffActiveStatusController:", error);
+    return res.status(500).json({ error: error.message || "Không thể cập nhật trạng thái tài khoản." });
+  }
+};

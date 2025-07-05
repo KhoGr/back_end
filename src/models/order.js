@@ -101,12 +101,14 @@ Order.init(
     },
     status: {
       type: DataTypes.ENUM(
-        'pending',
-        'preparing',
-        'served',
-        'completed',
-        'cancelled',
-        'refunded'
+    'pending',     // Mới tạo
+    'reserved',    //  Thêm: Đã xác nhận giữ bàn (chỉ reservation)
+    'preparing',   // Bếp đang làm
+    'served',      // Đã phục vụ
+    'delivering',  //  Thêm: Đang giao (delivery)
+    'completed',   // Đã thanh toán
+    'cancelled',   // Đơn bị hủy
+    'refunded'     // Đơn hoàn tiền
       ),
       defaultValue: 'pending',
     },

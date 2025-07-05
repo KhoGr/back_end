@@ -37,7 +37,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081","https://api.vnpt-hn.io.vn","https://restaurant.vnpt-hn.io.vn","https://admin.vnpt-hn.io.vn"],
+    origin: ["http://localhost:5173", "http://localhost:8080","http://localhost:8081","https://api.vnpt-hn.io.vn","https://restaurant.vnpt-hn.io.vn","https://admin.vnpt-hn.io.vn","http://localhost:8082"],
     methods: ["GET", "POST"],
     credentials: true,
   },
@@ -52,7 +52,8 @@ app.use(cors({
     process.env.CLIENT_URL,                  
     'http://localhost:5173',                  
     'http://localhost:8080',                 
-    'http://localhost:8081',                  
+    'http://localhost:8081',  
+    'http://localhost:8082',                
     'https://api.vnpt-hn.io.vn',
     'https://admin.vnpt-hn.io.vn',
     'https://restaurant.vnpt-hn.io.vn'

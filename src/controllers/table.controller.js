@@ -1,4 +1,20 @@
-import * as TableService from "../service/table.service.js"
+import * as TableService from "../service/table.service.js";
+
+const broadcastTableChange = (req, updatedTable) => {
+  const senderSocketId = req.headers['x-socket-id'];
+
+  if (senderSocketId) {
+    req.io.sockets.sockets.forEach((socket) => {
+      if (socket.id !== senderSocketId) {
+        socket.emit("table-booked", updatedTable);
+      }
+    });
+    console.log("📤 Broadcast table-booked (except sender)");
+  } else {
+    req.io.emit("table-booked", updatedTable);
+    console.log("📤 Broadcast table-booked (to all)");
+  }
+};
 
 export const getAllTables = async (req, res) => {
   try {
@@ -31,17 +47,7 @@ export const updateTable = async (req, res) => {
   try {
     const updatedTable = await TableService.updateTable(req.params.tableId, req.body);
 
-    // Lấy socket ID người gửi từ header
-    const senderSocketId = req.headers['x-socket-id'];
-
-    // Gửi tới tất cả client trừ người gửi
-    req.io.sockets.sockets.forEach((socket) => {
-      if (socket.id !== senderSocketId) {
-        socket.emit("table-booked", updatedTable);
-      }
-    });
-
-    console.log("📤 Broadcast table-booked cho các client khác");
+    broadcastTableChange(req, updatedTable);
 
     res.status(200).json({ success: true, data: updatedTable });
   } catch (error) {
@@ -49,8 +55,6 @@ export const updateTable = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to update table" });
   }
 };
-
-
 
 export const deleteTable = async (req, res) => {
   try {
@@ -67,7 +71,7 @@ export const bookTable = async (req, res) => {
     const { table_id } = req.body;
     const booked = await TableService.bookTable(table_id);
 
-    req.io.emit("table-booked", booked);
+    broadcastTableChange(req, booked);
 
     res.status(200).json({ success: true, data: booked });
   } catch (error) {

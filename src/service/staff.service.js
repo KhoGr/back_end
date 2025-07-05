@@ -76,7 +76,7 @@ export const createFullStaff = async (data) => {
             {
               model: Account,
               as: "account",
-              attributes: ["email"],
+              attributes: ["email","is_active"],
             },
           ],
         },
@@ -103,7 +103,7 @@ export const getStaffByUserId = async (userId) => {
             {
               model: Account,
               as:"account",
-              attributes: ["email"],
+              attributes: ["email","is_active"],
             },
           ],
         },
@@ -150,23 +150,24 @@ export const updateStaff = async (userId, updateData) => {
       joined_date: updateData.joined_date,
       note: updateData.note,
     };
-
     await Staff.update(staffFields, { where: { user_id: userId } });
-    console.log('Received updateData:', updateData);
-
 
     // Cập nhật User
     const userFields = {
       name: updateData.name,
       username: updateData.username,
     };
-
     await User.update(userFields, { where: { user_id: userId } });
 
     // Cập nhật Account
     const accountFields = {
       email: updateData.email,
     };
+
+    // Nếu updateData có trường is_active thì cập nhật
+    if (Object.prototype.hasOwnProperty.call(updateData, "is_active")) {
+      accountFields.is_active = updateData.is_active;
+    }
 
     await Account.update(accountFields, {
       where: { id: staff.user.account_id },
@@ -209,7 +210,7 @@ export const getAllStaffs = async () => {
             {
               model: Account,
               as: "account",
-              attributes: ["email"],
+              attributes: ["email","is_active"],
             },
           ],
         },
@@ -240,7 +241,7 @@ export const searchStaffsByName = async (searchTerm) => {
             {
               model: Account,
               as: "account",
-              attributes: ["email"],
+              attributes: ["email","is_active"],
             },
           ],
         },
@@ -251,5 +252,18 @@ export const searchStaffsByName = async (searchTerm) => {
   } catch (error) {
     console.error("Lỗi khi tìm kiếm staff:", error);
     throw new Error("Không thể tìm kiếm staff.");
+  }
+};
+export const updateStaffAccountStatus = async (userId, isActive) => {
+  try {
+    const user = await User.findOne({ where: { user_id: userId } });
+    if (!user) throw new Error("Không tìm thấy người dùng");
+
+    await Account.update({ is_active: isActive }, { where: { id: user.account_id } });
+
+    return { success: true, message: `Tài khoản đã được ${isActive ? "kích hoạt" : "vô hiệu hóa"}` };
+  } catch (error) {
+    console.error("Lỗi updateStaffAccountStatus:", error);
+    throw error;
   }
 };

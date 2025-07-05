@@ -5,22 +5,26 @@ import {
   updateCustomerController,
   deleteCustomerController,
   getAllCustomersController,
-  searchCustomersByNameController
+  searchCustomersByNameController,
+  toggleCustomerAccountStatusController, 
 } from "../controllers/customer.controller.js";
+
 import { jwtAuthentication } from "../middlewares/passport.middleware.js";
 import { verifyAdmin } from "../middlewares/auth.middleware.js";
 
 const customerApi = Router();
 
-// Áp dụng middleware xác thực và kiểm tra quyền admin
+// Middleware áp dụng cho admin
 const adminOnly = [jwtAuthentication, verifyAdmin];
 
-// Danh sách routes
-customerApi.get("/getAllCustomers", adminOnly, getAllCustomersController);             
-customerApi.get("/getCustomer/:userId", getCustomerController);          
-customerApi.post("/createCustomer", adminOnly, createCustomerController);             
-customerApi.put("/updateCustomer/:userId",  updateCustomerController);     
-customerApi.delete("/deleteCustomer/:userId", adminOnly, deleteCustomerController);     
-customerApi.get("/search",adminOnly, searchCustomersByNameController);
+
+customerApi.get("/getAllCustomers", adminOnly, getAllCustomersController);
+customerApi.get("/getCustomer/:userId", getCustomerController);
+customerApi.post("/createCustomer", adminOnly, createCustomerController);
+customerApi.put("/updateCustomer/:userId", updateCustomerController);
+customerApi.delete("/deleteCustomer/:userId", adminOnly, deleteCustomerController);
+customerApi.get("/search", adminOnly, searchCustomersByNameController);
+
+customerApi.patch("/toggleAccount/:userId", adminOnly, toggleCustomerAccountStatusController);
 
 export default customerApi;

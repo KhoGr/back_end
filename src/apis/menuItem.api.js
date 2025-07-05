@@ -24,7 +24,7 @@ menuItemApi.patch(
 );
 
 menuItemApi.post('/create', jwtAuthentication, verifyAdmin, MenuItemController.create);
-menuItemApi.put('/update/:id', jwtAuthentication, verifyAdmin, MenuItemController.update);
+menuItemApi.put('/update/:id', MenuItemController.update);
 menuItemApi.delete('/delete/:id', jwtAuthentication, verifyAdmin, MenuItemController.delete);
 
 export default menuItemApi;

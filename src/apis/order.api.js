@@ -5,27 +5,31 @@ import { verifyAdmin } from '../middlewares/auth.middleware.js';
 
 const orderAPI = Router();
 
+// 🔍 Tìm kiếm đơn hàng
+orderAPI.get('/search', OrderController.search);
 
-orderAPI.get('/search', jwtAuthentication, verifyAdmin, OrderController.search);
+// 📊 Thống kê dashboard theo ngày (thêm mới)
+orderAPI.get('/dashboard/daily', OrderController.getDashboardStatsByDate);
 
-//  Lấy danh sách tất cả đơn hàng 
+// 📋 Lấy danh sách tất cả đơn hàng
 orderAPI.get('/', jwtAuthentication, verifyAdmin, OrderController.getAll);
 
-//  Tạo mới đơn hàng 
-orderAPI.post('/', jwtAuthentication, OrderController.create);
+// 🆕 Tạo mới đơn hàng
+orderAPI.post('/', OrderController.create);
 
-//  Lấy chi tiết đơn hàng
-orderAPI.get('/:id', jwtAuthentication, OrderController.getById);
+// 🔍 Lấy chi tiết đơn hàng
+orderAPI.get('/:id', OrderController.getById);
 
-//  Cập nhật đơn hàng hơi bug tý
-orderAPI.patch('/:id', jwtAuthentication, OrderController.update);
+// 🔁 Cập nhật đơn hàng
+orderAPI.patch('/:id', OrderController.update);
 
-//  Tính lại tổng tiền đơn hàng
+// 🔄 Tính lại tổng tiền đơn hàng
 orderAPI.patch('/:id/recalculate', jwtAuthentication, verifyAdmin, OrderController.recalculateTotal);
 
-//  Xoá đơn hàng
+// ❌ Xoá đơn hàng
 orderAPI.delete('/:id', jwtAuthentication, verifyAdmin, OrderController.remove);
-orderAPI.get('/customer/:customer_id', jwtAuthentication, OrderController.getByCustomerId);
 
+// 📦 Lấy đơn hàng theo khách hàng
+orderAPI.get('/customer/:customer_id', jwtAuthentication, OrderController.getByCustomerId);
 
 export default orderAPI;
