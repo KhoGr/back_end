@@ -18,12 +18,12 @@ const customerApi = Router();
 const adminOnly = [jwtAuthentication, verifyAdmin];
 
 
-customerApi.get("/getAllCustomers", adminOnly, getAllCustomersController);
+customerApi.get("/getAllCustomers", getAllCustomersController);
 customerApi.get("/getCustomer/:userId", getCustomerController);
 customerApi.post("/createCustomer", adminOnly, createCustomerController);
 customerApi.put("/updateCustomer/:userId", updateCustomerController);
 customerApi.delete("/deleteCustomer/:userId", adminOnly, deleteCustomerController);
-customerApi.get("/search", adminOnly, searchCustomersByNameController);
+customerApi.get("/search", searchCustomersByNameController);
 
 customerApi.patch("/toggleAccount/:userId", adminOnly, toggleCustomerAccountStatusController);
 
